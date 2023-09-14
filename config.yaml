@@ -1,0 +1,13 @@
+credentials:
+  usernames:
+    MarketingData:
+      email: wajih.arfaoui@fabernovel.com
+      name: Marketing Data
+      password: $2b$12$veHfDj6bEytgf211On1XWOtNUCWIsNwpXWchZ8TPehwNasNeQAJiK # To be replaced with hashed password
+cookie:
+  expiry_days: 00
+  key: random_signature_key # Must be string
+  name: random_cookie_name
+preauthorized:
+  emails:
+  - melsby@gmail.com
