@@ -60,7 +60,7 @@ def brand_ranking (keywords,DB,your_brand_domain):
         else:
             print(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")
                 
-    return rank
+    return rank, competitors
 
 
 
