@@ -13,6 +13,8 @@ from yaml.loader import SafeLoader
 with open('./config.yaml') as file:
     config = yaml.load(file, Loader=SafeLoader)
 
+API_KEY = 'e31f38c36540a234e23b614a7ffb4fc4'
+
 
 #Create the authenticator object
 authenticator = stauth.Authenticate(
@@ -22,16 +24,44 @@ authenticator = stauth.Authenticate(
     config['cookie']['expiry_days'],
     config['preauthorized']
 )
-# def seo(KEYWORD, DB):
-#     API_KEY = 'e31f38c36540a234e23b614a7ffb4fc4'
-#     url = f"https://api.semrush.com/?type=phrase_all&key={API_KEY}&phrase={KEYWORD}&export_columns=Dt,Db,Ph,Nq,Cp,Co,Nr&database={DB}"
-#     response = requests.get(url)
-#     df = pl.read_csv(io.StringIO(response.text), separator=';', eol_char='\n')
-#     return df
+
 name, authentication_status, username = authenticator.login('Login', 'main')
 
+def brand_ranking (keywords,DB,your_brand_domain): 
+    dfs_r = pl.DataFrame([])  # List to store dataframes for each keyword
+    your_brand_position = None
+    competitors = pl.DataFrame([])
+    t = pl.DataFrame([])
+    rank = pl.DataFrame([])
+    for keyword in keywords:
+        url = f"https://api.semrush.com/?type=phrase_organic&key={API_KEY}&phrase={keyword}&export_columns=Kd,Dn,Po,&database={DB}"
+        response = requests.get(url)
+        
+        # Make sure the request was successful before processing
+        if response.status_code == 200:
+            df = pl.read_csv(io.StringIO(response.text), separator=';', eol_char='\n').with_columns(Key=pl.lit(keyword))
+            dfs_r = dfs_r.vstack(df)
+            
+            for i in range(len(dfs_r)):
+                domain = dfs_r['Domain'][i]
+                position = dfs_r['Position'][i]
+                Keys = dfs_r['Key'][i]
+
+                if (domain in your_brand_domain) or (your_brand_domain in domain):
+                    your_brand_position = position
+                    rank = rank.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(your_brand_domain),brand_ranking= pl.lit(your_brand_position))
+                else:
+                    t = t.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(domain), brand_ranking= pl.lit(position))
+                    competitors = competitors.vstack(t)            
+        else:
+            print(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")
+            
+    return rank, competitors[:10]
+
+
+
 def seo(keywords, DB):
-    API_KEY = 'e31f38c36540a234e23b614a7ffb4fc4'
+
     
     dfs = pl.DataFrame([])  # List to store dataframes for each keyword
 
@@ -44,6 +74,7 @@ def seo(keywords, DB):
             df = pl.read_csv(io.StringIO(response.text), separator=';', eol_char='\n')
             df = df.with_columns(pl.col("Competition").cast(pl.Float32))
             dfs = dfs.vstack(df)
+            
         else:
             print(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")
 
@@ -89,23 +120,32 @@ if authentication_status:
         # Allow user to manually enter keywords
         keywords_input = st.text_area("Or enter keywords manually (one keyword per line)")
 
-
+        your_brand_domain = st.text_input("Enter your brand domain")
+        
         DB = st.selectbox("Select a country:", ["us", "uk", "ca", "au", "de", "fr", "es", "it", "br", "mx", "in"])  # Add more countries as needed
         if st.button("Fetch Data"):
+            
             if uploaded_file is not None:
                 data = pl.read_excel(uploaded_file,read_csv_options={"has_header": False})
                 keywords = data['column_1'].to_list()
                 
                 # Fetch and display SEO data
                 dataframes = seo(keywords, DB)
+                rankings, competition = brand_ranking(keywords,DB,your_brand_domain)
                 st.write(dataframes)
+                st.write(rankings)
+                st.write(competition)
                     
             elif keywords_input:
                 keywords = keywords_input.split(',')
-                
+
                 # Fetch and display SEO data
                 dataframes = seo(keywords, DB)
+                rankings, competition = brand_ranking(keywords,DB,your_brand_domain)
                 st.write(dataframes)
+                st.write(rankings)
+                st.write(competition)
+                
             # Download 
             st.write("\n\n\n")
             st.download_button(
@@ -118,17 +158,3 @@ elif authentication_status == False:
     st.error('Username/password is incorrect')
 elif authentication_status == None:
     st.warning('Please enter your username and password')            
-
-
-
-
-
-
-
-
-                
-                
-
-
-
-
