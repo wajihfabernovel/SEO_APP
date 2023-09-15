@@ -28,6 +28,7 @@ authenticator = stauth.Authenticate(
 name, authentication_status, username = authenticator.login('Login', 'main')
 
 def brand_ranking (keywords,DB,your_brand_domain): 
+    
     dfs_r = pl.DataFrame([])  # List to store dataframes for each keyword
     your_brand_position = None
     competitors = pl.DataFrame([])
@@ -59,7 +60,7 @@ def brand_ranking (keywords,DB,your_brand_domain):
         else:
             print(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")
                 
-        return rank, competitors
+    return rank
 
 
 
