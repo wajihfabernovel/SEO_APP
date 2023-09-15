@@ -167,15 +167,6 @@ def generate_historical_metrics(api_client, customer_id):
     request.keyword_plan_network = keyword_plan_network
     request.keywords.extend(['robe soirée','france'])
 
-    '''
-    keyword_historical_metrics_response = request.generate_keyword_historical_metrics(
-        customer_id=customer_id,
-        language='en',  # English language
-        geo_target_constants=[2840],  # Geo target constant 2840 is for USA.
-        keyword_plan_network='GOOGLE_SEARCH',
-        keywords=['mars cruise', 'cheap cruise', 'jupiter cruise']
-    )
-    '''
     keyword_historical_metrics_response = keyword.generate_keyword_historical_metrics(
         request=request
     )
