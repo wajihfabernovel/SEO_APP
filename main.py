@@ -32,6 +32,7 @@ def brand_ranking (keywords,DB,your_brand_domain):
     your_brand_position = None
     competitors = pl.DataFrame([])
     t = pl.DataFrame([])
+    b = pl.DataFrame([])
     rank = pl.DataFrame([])
     for keyword in keywords:
         url = f"https://api.semrush.com/?type=phrase_organic&key={API_KEY}&phrase={keyword}&export_columns=Kd,Dn,Po,&database={DB}"
@@ -49,7 +50,8 @@ def brand_ranking (keywords,DB,your_brand_domain):
 
                 if (domain in your_brand_domain) or (your_brand_domain in domain):
                     your_brand_position = position
-                    rank = rank.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(your_brand_domain),brand_ranking= pl.lit(your_brand_position))
+                    b = b.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(your_brand_domain),brand_ranking= pl.lit(your_brand_position))
+                    rank = rank.vstack(b)
                 else:
                     t = t.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(domain), brand_ranking= pl.lit(position))
                     competitors = competitors.vstack(t)            
