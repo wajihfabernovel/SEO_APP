@@ -4,6 +4,7 @@ import polars as pl
 import io
 import pandas as pd
 import streamlit_authenticator as stauth
+from google.ads.googleads.client import GoogleAdsClient
 
 pl.Config.set_tbl_hide_column_data_types(True)
 
@@ -14,7 +15,13 @@ with open('./config.yaml') as file:
     config = yaml.load(file, Loader=SafeLoader)
 
 API_KEY = 'e31f38c36540a234e23b614a7ffb4fc4'
-
+CUSTOMER_ID = "3117864871"
+creds = {
+    'developer_token' : "q2Om6GmAhWjE2z_p8Da_Fw",
+    'client_id' : "899223584116-m7n92thr3co9gr0otu7g64o85r6i46ko.apps.googleusercontent.com",
+    'client_secret' : "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",
+    'refresh_token' : "1//03aBH-xmgK1j6CgYIARAAGAMSNwF-L9IrHTMIAOSWIcjj147tjSBl5Z83teClPGIF2S-wcGCrCtO83BlRy5VaT4PoPA06_EVx5hQ",
+    'use_proto_plus' : "False"} 
 
 #Create the authenticator object
 authenticator = stauth.Authenticate(
@@ -83,7 +90,114 @@ def seo(keywords, DB):
             print(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")
 
     return dfs
+def search_for_language_constants(client, customer_id, language_name):
+    """Searches for language constants where the name includes a given string.
 
+    Args:
+        client: An initialized Google Ads API client.
+        customer_id: The Google Ads customer ID.
+        language_name: String included in the language name to search for.
+    """
+    # Get the GoogleAdsService client.
+    googleads_service = client.get_service("GoogleAdsService")
+
+    # Create a query that retrieves the language constants where the name
+    # includes a given string.
+    query = f"""
+        SELECT
+        language_constant.resource_name
+        FROM language_constant
+        WHERE language_constant.name LIKE '%{language_name}%'"""
+
+    # Issue a search request and process the stream response to print the
+    # requested field values for the carrier constant in each row.
+    stream = googleads_service.search_stream(
+        customer_id=customer_id, query=query
+    )
+    batches = [batch.results for batch in stream]
+    return batches[0][0].language_constant.resource_name
+
+
+def map_locations_ids_to_resource_names(client, customer_id, location_name):
+    """Converts a list of location IDs to resource names.
+
+    Args:
+        client: an initialized GoogleAdsClient instance.
+        location_ids: a list of location ID strings.
+
+    Returns:
+        a list of resource name strings using the given location IDs.
+    """
+    # Get the GoogleAdsService client.
+    googleads_service = client.get_service("GoogleAdsService")
+
+    # Create a query that retrieves the language constants where the name
+    # includes a given string.
+    query = f"""
+        SELECT
+        geo_target_constant.resource_name
+        FROM geo_target_constant
+        WHERE geo_target_constant.name LIKE '%{location_name}%'"""
+
+    # Issue a search request and process the stream response to print the
+    # requested field values for the carrier constant in each row.
+    stream = googleads_service.search_stream(
+        customer_id=customer_id, query=query
+    )
+    batches = [batch.results for batch in stream]
+    return batches[0][0].geo_target_constant.resource_name
+
+
+def generate_historical_metrics(api_client, customer_id):
+    overview = pl.DataFrame([])
+    final_overview = pl.DataFrame([])
+    monthly_results = pl.DataFrame([])
+    final_monthly_results = pl.DataFrame([])
+    
+    keyword = api_client.get_service("KeywordPlanIdeaService")
+    request = api_client.get_type("GenerateKeywordHistoricalMetricsRequest")
+    keyword_plan_network = api_client.get_type(
+        "KeywordPlanNetworkEnum"
+    ).KeywordPlanNetwork.GOOGLE_SEARCH_AND_PARTNERS
+    
+    request.customer_id = customer_id
+    request.language = search_for_language_constants(api_client, "3117864871", "English")
+    request.geo_target_constants.extend([map_locations_ids_to_resource_names(api_client, "3117864871", "France")])
+
+    request.keyword_plan_network = keyword_plan_network
+    request.keywords.extend(['robe soirée','france'])
+
+    '''
+    keyword_historical_metrics_response = request.generate_keyword_historical_metrics(
+        customer_id=customer_id,
+        language='en',  # English language
+        geo_target_constants=[2840],  # Geo target constant 2840 is for USA.
+        keyword_plan_network='GOOGLE_SEARCH',
+        keywords=['mars cruise', 'cheap cruise', 'jupiter cruise']
+    )
+    '''
+    keyword_historical_metrics_response = keyword.generate_keyword_historical_metrics(
+        request=request
+    )
+    for result in keyword_historical_metrics_response.results:
+        metric = result.keyword_metrics
+        overview = overview.with_columns(search_query=pl.lit(result.text), appro_monthly_search = pl.lit(metric.avg_monthly_searches),competition_level = pl.lit(metric.competition))
+        # These metrics include those for both the search query and any
+        # variants included in the response.
+        # If the metric is undefined, print (None) as a placeholder.
+        
+        final_overview = final_overview.vstack(overview)
+        
+        # Approximate number of searches on this query for the past twelve months.
+        for month in metric.monthly_search_volumes:
+            if month.month == 13:
+                monthly_results = overview.with_columns(search_query=pl.lit(result.text),Appro_monthly=month.monthly_searches, month = 1,Year = month.year+1)
+                final_monthly_results = final_monthly_results.vstack(monthly_results)
+            else:   
+                monthly_results = overview.with_columns(search_query=pl.lit(result.text),Appro_monthly=month.monthly_searches, month =month.month,Year = month.year) 
+                final_monthly_results = final_monthly_results.vstack(monthly_results)
+    return final_overview,final_monthly_results
+    
 # Function to download the DataFrame as an Excel file
 def download_excel(df):
     # Convert Polars DataFrame to Pandas DataFrame for Excel export
@@ -146,7 +260,16 @@ if authentication_status:
                 # Fetch and display SEO data
                 dataframes = seo(keywords, DB)
                 rankings, competition = brand_ranking(keywords,DB,your_brand_domain)
+                # Initialize the GoogleAdsClient with the credentials and developer token
+                api_client = GoogleAdsClient.load_from_dict(
+                    creds
+                )
+                #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
+                overview, monthly_results = generate_historical_metrics(api_client, CUSTOMER_ID)
+                
                 st.write(dataframes)
+                st.write(overview)
+                st.write(monthly_results)
                 st.write(rankings)
                 #st.write(competition)
                 
