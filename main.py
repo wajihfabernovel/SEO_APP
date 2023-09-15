@@ -37,28 +37,29 @@ def brand_ranking (keywords,DB,your_brand_domain):
     for keyword in keywords:
         url = f"https://api.semrush.com/?type=phrase_organic&key={API_KEY}&phrase={keyword}&export_columns=Kd,Dn,Po,&database={DB}"
         response = requests.get(url)
-        
         # Make sure the request was successful before processing
         if response.status_code == 200:
             df = pl.read_csv(io.StringIO(response.text), separator=';', eol_char='\n').with_columns(Key=pl.lit(keyword))
             dfs_r = dfs_r.vstack(df)
             
-            for i in range(len(dfs_r)):
-                domain = dfs_r['Domain'][i]
-                position = dfs_r['Position'][i]
-                Keys = dfs_r['Key'][i]
-
+            for i in range(len(df)):
+                domain = df['Domain'][i]
+                position = df['Position'][i]
+                Keys = df['Key'][i]
+    
                 if (domain in your_brand_domain) or (your_brand_domain in domain):
                     your_brand_position = position
+    
                     b = b.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(your_brand_domain),brand_ranking= pl.lit(your_brand_position))
                     rank = rank.vstack(b)
+    
                 else:
                     t = t.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(domain), brand_ranking= pl.lit(position))
                     competitors = competitors.vstack(t)            
         else:
             print(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")
-            
-    return rank, competitors[:10]
+                
+        return rank, competitors
 
 
 
@@ -136,7 +137,7 @@ if authentication_status:
                 rankings, competition = brand_ranking(keywords,DB,your_brand_domain)
                 st.write(dataframes)
                 st.write(rankings)
-                st.write(competition)
+                #st.write(competition)
                     
             elif keywords_input:
                 keywords = keywords_input.split(',')
@@ -146,7 +147,7 @@ if authentication_status:
                 rankings, competition = brand_ranking(keywords,DB,your_brand_domain)
                 st.write(dataframes)
                 st.write(rankings)
-                st.write(competition)
+                #st.write(competition)
                 
             # Download 
             st.write("\n\n\n")
