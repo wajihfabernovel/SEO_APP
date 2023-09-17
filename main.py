@@ -182,10 +182,10 @@ def generate_historical_metrics(api_client, customer_id,keywords):
         # Approximate number of searches on this query for the past twelve months.
         for month in metric.monthly_search_volumes:
             if month.month == 13:
-                monthly_results = overview.with_columns(search_query=pl.lit(result.text),Appro_monthly=month.monthly_searches, month = 1,Year = month.year+1)
+                monthly_results = monthly_results.with_columns(search_query=pl.lit(result.text),Appro_monthly=month.monthly_searches, month = 1,Year = month.year+1)
                 final_monthly_results = final_monthly_results.vstack(monthly_results)
             else:   
-                monthly_results = overview.with_columns(search_query=pl.lit(result.text),Appro_monthly=month.monthly_searches, month =month.month,Year = month.year) 
+                monthly_results = monthly_results.with_columns(search_query=pl.lit(result.text),Appro_monthly=month.monthly_searches, month =month.month,Year = month.year) 
                 final_monthly_results = final_monthly_results.vstack(monthly_results)
     return final_overview,final_monthly_results
     
