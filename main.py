@@ -148,7 +148,7 @@ def map_locations_ids_to_resource_names(client, customer_id, location_name):
     return batches[0][0].geo_target_constant.resource_name
 
 
-def generate_historical_metrics(api_client, customer_id):
+def generate_historical_metrics(api_client, customer_id,keywords):
     overview = pl.DataFrame([])
     final_overview = pl.DataFrame([])
     monthly_results = pl.DataFrame([])
@@ -165,7 +165,7 @@ def generate_historical_metrics(api_client, customer_id):
     request.geo_target_constants.extend([map_locations_ids_to_resource_names(api_client, "3117864871", "France")])
 
     request.keyword_plan_network = keyword_plan_network
-    request.keywords.extend(['robe soirée','france'])
+    request.keywords.extend(keywords)
 
     keyword_historical_metrics_response = keyword.generate_keyword_historical_metrics(
         request=request
@@ -256,7 +256,7 @@ if authentication_status:
                     creds
                 )
                 #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
-                overview, monthly_results = generate_historical_metrics(api_client, CUSTOMER_ID)
+                overview, monthly_results = generate_historical_metrics(api_client, CUSTOMER_ID,keywords)
                 
                 st.write(dataframes)
                 st.write(overview)
