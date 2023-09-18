@@ -246,9 +246,9 @@ if authentication_status:
             DB = st.selectbox("Select a country:", ["us", "uk", "ca", "au", "de", "fr", "es", "it", "br", "mx", "in"]) 
         with col2:
             lang = st.selectbox("Select a language:", ["French", "English"]) 
-        st.write(name_to_api_key[api][api_key]) # Add more countries as needed
-        API_k = name_to_api_key[api][api_key]
-        client_ = name_to_api_key[api][client_id]
+        st.write(name_to_api_key[api]["api_key"]) # Add more countries as needed
+        API_k = name_to_api_key[api]["api_key"]
+        client_ = name_to_api_key[api]["client_id"]
         if st.button("Fetch Data"):
             
             if uploaded_file is not None:
