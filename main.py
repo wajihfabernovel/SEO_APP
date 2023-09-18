@@ -204,6 +204,16 @@ def download_excel(df):
 if authentication_status:
     authenticator.logout('Logout', 'main')
     if __name__ == "__main__":
+        name_to_api_key = {
+            "Leclerc": {
+                "api_key": "e31f38c36540a234e23b614a7ffb4fc4",
+                "client_id": "3117864871"
+            },
+            "BLW": {
+                "api_key": "value1",
+                "client_id": "value2"
+            }
+        }
         st.markdown("""
         <style>
         .logo {
@@ -227,13 +237,17 @@ if authentication_status:
         uploaded_file = st.file_uploader("Upload an Excel file containing keywords", type=["xlsx"])
             
         # Allow user to manually enter keywords
-        keywords_input = st.text_area("Or enter keywords manually (one keyword per line)")
-
-        your_brand_domain = st.text_input("Enter your brand domain")
+        keywords_input = st.text_area("Or enter keywords manually (seperated by a , )")
+        col1, col2 = st.beta_columns(2)
         
-        DB = st.selectbox("Select a country:", ["us", "uk", "ca", "au", "de", "fr", "es", "it", "br", "mx", "in"])  # Add more countries as needed
+        your_brand_domain = st.text_input("Enter your brand domain")
+        api = st.selectbox("Select a Google Ads account:", ["Leclerc", "BLW"])  # Add more countries as needed
+        with col1:
+            DB = st.selectbox("Select a country:", ["us", "uk", "ca", "au", "de", "fr", "es", "it", "br", "mx", "in"]) 
+        with col2:
+            lang = st.selectbox("Select a language:", ["French", "English"])  # Add more countries as needed
         if st.button("Fetch Data"):
-            
+            st.write(name_to_api_key[api])
             if uploaded_file is not None:
                 data = pl.read_excel(uploaded_file,read_csv_options={"has_header": False})
                 keywords = data['column_1'].to_list()
