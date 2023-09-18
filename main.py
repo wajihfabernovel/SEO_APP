@@ -15,7 +15,7 @@ with open('./config.yaml') as file:
     config = yaml.load(file, Loader=SafeLoader)
 
 API_KEY = 'e31f38c36540a234e23b614a7ffb4fc4'
-CUSTOMER_ID = "3117864871"
+
 creds = {
     'developer_token' : "q2Om6GmAhWjE2z_p8Da_Fw",
     'client_id' : "899223584116-m7n92thr3co9gr0otu7g64o85r6i46ko.apps.googleusercontent.com",
@@ -43,7 +43,7 @@ def brand_ranking (keywords,DB,your_brand_domain):
     b = pl.DataFrame([])
     rank = pl.DataFrame([])
     for keyword in keywords:
-        url = f"https://api.semrush.com/?type=phrase_organic&key={API_KEY}&phrase={keyword}&export_columns=Kd,Dn,Po,&database={DB}"
+        url = f"https://api.semrush.com/?type=phrase_organic&key={name_to_api_key[api][api_key]}&phrase={keyword}&export_columns=Kd,Dn,Po,&database={DB}"
         response = requests.get(url)
         # Make sure the request was successful before processing
         if response.status_code == 200:
@@ -77,7 +77,7 @@ def seo(keywords, DB):
     dfs = pl.DataFrame([])  # List to store dataframes for each keyword
 
     for keyword in keywords:
-        url = f"https://api.semrush.com/?type=phrase_all&key={API_KEY}&phrase={keyword}&export_columns=Dt,Db,Ph,Nq,Cp,Co,Nr&database={DB}"
+        url = f"https://api.semrush.com/?type=phrase_all&key={name_to_api_key[api][api_key]}&phrase={keyword}&export_columns=Dt,Db,Ph,Nq,Cp,Co,Nr&database={DB}"
         response = requests.get(url)
 
         # Make sure the request was successful before processing
@@ -247,7 +247,7 @@ if authentication_status:
         with col2:
             lang = st.selectbox("Select a language:", ["French", "English"])  # Add more countries as needed
         if st.button("Fetch Data"):
-            st.write(name_to_api_key[api])
+            
             if uploaded_file is not None:
                 data = pl.read_excel(uploaded_file,read_csv_options={"has_header": False})
                 keywords = data['column_1'].to_list()
@@ -270,7 +270,7 @@ if authentication_status:
                     creds
                 )
                 #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
-                overview, monthly_results = generate_historical_metrics(api_client, CUSTOMER_ID,keywords)
+                overview, monthly_results = generate_historical_metrics(api_client, name_to_api_key[api][client_id],keywords)
                 
                 st.write(dataframes)
                 st.write(overview)
