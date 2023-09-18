@@ -43,7 +43,7 @@ def brand_ranking (keywords,DB,your_brand_domain):
     b = pl.DataFrame([])
     rank = pl.DataFrame([])
     for keyword in keywords:
-        url = f"https://api.semrush.com/?type=phrase_organic&key={API}&phrase={keyword}&export_columns=Kd,Dn,Po,&database={DB}"
+        url = f"https://api.semrush.com/?type=phrase_organic&key={API_}&phrase={keyword}&export_columns=Kd,Dn,Po,&database={DB}"
         response = requests.get(url)
         # Make sure the request was successful before processing
         if response.status_code == 200:
@@ -77,7 +77,7 @@ def seo(keywords, DB):
     dfs = pl.DataFrame([])  # List to store dataframes for each keyword
 
     for keyword in keywords:
-        url = f"https://api.semrush.com/?type=phrase_all&key={API}&phrase={keyword}&export_columns=Dt,Db,Ph,Nq,Cp,Co,Nr&database={DB}"
+        url = f"https://api.semrush.com/?type=phrase_all&key={API_}&phrase={keyword}&export_columns=Dt,Db,Ph,Nq,Cp,Co,Nr&database={DB}"
         response = requests.get(url)
 
         # Make sure the request was successful before processing
@@ -246,7 +246,8 @@ if authentication_status:
             DB = st.selectbox("Select a country:", ["us", "uk", "ca", "au", "de", "fr", "es", "it", "br", "mx", "in"]) 
         with col2:
             lang = st.selectbox("Select a language:", ["French", "English"])  # Add more countries as needed
-        API = name_to_api_key[api][api_key]
+        API_ = name_to_api_key[api][api_key]
+        client_ = name_to_api_key[api][client_id]
         if st.button("Fetch Data"):
             
             if uploaded_file is not None:
@@ -271,7 +272,7 @@ if authentication_status:
                     creds
                 )
                 #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
-                overview, monthly_results = generate_historical_metrics(api_client, name_to_api_key[api][client_id],keywords)
+                overview, monthly_results = generate_historical_metrics(api_client,client_,keywords)
                 
                 st.write(dataframes)
                 st.write(overview)
