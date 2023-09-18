@@ -238,7 +238,7 @@ if authentication_status:
             
         # Allow user to manually enter keywords
         keywords_input = st.text_area("Or enter keywords manually (seperated by a , )")
-        col1, col2 = st.beta_columns(2)
+        col1, col2 = st.columns(2)
         
         your_brand_domain = st.text_input("Enter your brand domain")
         api = st.selectbox("Select a Google Ads account:", ["Leclerc", "BLW"])  # Add more countries as needed
