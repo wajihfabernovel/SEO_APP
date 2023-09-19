@@ -194,7 +194,7 @@ def generate_historical_metrics(api_client, customer_id,keywords):
 def download_excel(df_dict, file_name):
     with io.BytesIO() as buffer:
         with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-            for df, sheet_name in zip(dfs, sheet_names):
+            for df, sheet_name in zip(df_dict, file_name):
                 df.to_excel(writer, sheet_name=sheet_name)
         return buffer.getvalue()
 
