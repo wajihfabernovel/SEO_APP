@@ -192,12 +192,12 @@ def generate_historical_metrics(api_client, customer_id,keywords):
 # Function to download the DataFrame as an Excel file
 
 def download_excel(df):
+    for sheet_name, df in df_dict.items():
     # Convert Polars DataFrame to Pandas DataFrame for Excel export
-    df_pd = df.to_pandas()
-    output = io.BytesIO()
-    with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        for sheet_name, df in df_dict.items():
-            df_pd.to_excel(writer, index=False, sheet_name=sheet_name)
+        df_pd = df.to_pandas()
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                df_pd.to_excel(writer, index=False, sheet_name=sheet_name)
     output.seek(0)
     return output.getvalue()
 
