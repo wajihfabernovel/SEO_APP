@@ -256,7 +256,18 @@ if authentication_status:
                 # Fetch and display SEO data
                 dataframes = seo(keywords, DB)
                 rankings, competition = brand_ranking(keywords,DB,your_brand_domain)
+                api_client = GoogleAdsClient.load_from_dict(
+                    name_to_api_key[client_credentials]["credentials"]
+                )
+                #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
+                overview, monthly_results = generate_historical_metrics(api_client,client_,keywords)
+                st.write("SemRush Keyword Volume data")
                 st.write(dataframes)
+                st.write("Google Keyword Planner Volume data")
+                st.write(overview)
+                st.write("Google Keyword Palnner App Monthly Volume data")
+                st.write(monthly_results)
+                st.write("SemRush Keyword's ranking ")
                 st.write(rankings)
                 #st.write(competition)
                     
