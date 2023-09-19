@@ -206,11 +206,11 @@ if authentication_status:
     if __name__ == "__main__":
         name_to_api_key = {
             "Leclerc": {
-                "client_id": "3117864871"
+                "client_id": "3117864871",
                 "credentials": creds
             },
             "BLW": {
-                "client_id": "3117864871"
+                "client_id": "3117864871",
                 "credentials": creds         
             }
         }
