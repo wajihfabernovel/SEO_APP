@@ -191,7 +191,7 @@ def generate_historical_metrics(api_client, customer_id,keywords):
     
 # Function to download the DataFrame as an Excel file
 
-def download_excel(df):
+ def download_excel(df):
     # Convert Polars DataFrame to Pandas DataFrame for Excel export
     df_pd = df.to_pandas()
     output = io.BytesIO()
@@ -199,6 +199,7 @@ def download_excel(df):
         df_pd.to_excel(writer, index=False, sheet_name='Sheet1')
     output.seek(0)
     return output.getvalue()
+
 
 # Streamlit UI
 if authentication_status:
@@ -294,14 +295,6 @@ if authentication_status:
                 st.write(rankings)
                 #st.write(competition)
                 
-            # Download 
-            dataframes = {
-                'Sheet1': dataframes,
-                'Sheet2': overview,
-                'Sheet3': monthly_results,
-                'Sheet4': rankings
-            }
-            file_name='volume.xlsx',
             st.write("\n\n\n")
             st.download_button(
                 label="Download data as Excel",
