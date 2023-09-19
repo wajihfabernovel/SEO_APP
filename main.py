@@ -190,18 +190,16 @@ def generate_historical_metrics(api_client, customer_id,keywords):
     return final_overview,final_monthly_results
     
 # Function to download the DataFrame as an Excel file
-def download_excel(df_dict):
+
+def download_excel(df):
+    # Convert Polars DataFrame to Pandas DataFrame for Excel export
+    df_pd = df.to_pandas()
     output = io.BytesIO()
-    with pd.ExcelWriter(output, engine='openpyxl') as writer:  
-        # Iterate through the dictionary of DataFrames and save each in a separate sheet
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
         for sheet_name, df in df_dict.items():
-            df.to_excel(writer, index=False, sheet_name=sheet_name)
-    
-    # Save all DataFrames in the same workbook
-    writer.save()
-    
-    # Close the Pandas Excel writer
-    writer.close()
+            df_pd.to_excel(writer, index=False, sheet_name=sheet_name)
+    output.seek(0)
+    return output.getvalue()
 
 
 # Streamlit UI
@@ -288,9 +286,13 @@ if authentication_status:
                 #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
                 overview, monthly_results = generate_historical_metrics(api_client,client_,keywords)
                 
+                st.write("SemRush Keyword Volume data")
                 st.write(dataframes)
+                st.write("Google Keyword Planner Volume data")
                 st.write(overview)
+                st.write("Google Keyword Palnner App Monthly Volume data")
                 st.write(monthly_results)
+                st.write("SemRush Keyword's ranking ")
                 st.write(rankings)
                 #st.write(competition)
                 
