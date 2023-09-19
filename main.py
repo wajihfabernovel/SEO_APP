@@ -43,7 +43,7 @@ def brand_ranking (keywords,DB,your_brand_domain):
     b = pl.DataFrame([])
     rank = pl.DataFrame([])
     for keyword in keywords:
-        url = f"https://api.semrush.com/?type=phrase_organic&key={API_k}&phrase={keyword}&export_columns=Kd,Dn,Po,&database={DB}"
+        url = f"https://api.semrush.com/?type=phrase_organic&key={API_KEY}&phrase={keyword}&export_columns=Kd,Dn,Po,&database={DB}"
         response = requests.get(url)
         # Make sure the request was successful before processing
         if response.status_code == 200:
@@ -77,7 +77,7 @@ def seo(keywords, DB):
     dfs = pl.DataFrame([])  # List to store dataframes for each keyword
 
     for keyword in keywords:
-        url = f"https://api.semrush.com/?type=phrase_all&key={API_k}&phrase={keyword}&export_columns=Dt,Db,Ph,Nq,Cp,Co,Nr&database={DB}"
+        url = f"https://api.semrush.com/?type=phrase_all&key={API_KEY}&phrase={keyword}&export_columns=Dt,Db,Ph,Nq,Cp,Co,Nr&database={DB}"
         response = requests.get(url)
 
         # Make sure the request was successful before processing
@@ -118,7 +118,7 @@ def search_for_language_constants(client, customer_id, language_name):
     return batches[0][0].language_constant.resource_name
 
 
-def map_locations_ids_to_resource_names(client, customer_id, location_name):
+def map_locations_ids_to_resource_names(api_client, customer_id, location_name):
     """Converts a list of location IDs to resource names.
 
     Args:
@@ -129,7 +129,7 @@ def map_locations_ids_to_resource_names(client, customer_id, location_name):
         a list of resource name strings using the given location IDs.
     """
     # Get the GoogleAdsService client.
-    googleads_service = client.get_service("GoogleAdsService")
+    googleads_service = api_client.get_service("GoogleAdsService")
 
     # Create a query that retrieves the language constants where the name
     # includes a given string.
@@ -206,12 +206,12 @@ if authentication_status:
     if __name__ == "__main__":
         name_to_api_key = {
             "Leclerc": {
-                "api_key": "e31f38c36540a234e23b614a7ffb4fc4",
                 "client_id": "3117864871"
+                "credentials": creds
             },
             "BLW": {
-                "api_key": "value1",
-                "client_id": "value2"
+                "client_id": "3117864871"
+                "credentials": creds         
             }
         }
         st.markdown("""
@@ -241,14 +241,12 @@ if authentication_status:
         col1, col2 = st.columns(2)
         
         your_brand_domain = st.text_input("Enter your brand domain")
-        api = st.selectbox("Select a Google Ads account:", ["Leclerc", "BLW"])  # Add more countries as needed
+        client_credentials = st.selectbox("Select a Google Ads account:", ["Leclerc", "BLW"])  # Add more countries as needed
         with col1:
             DB = st.selectbox("Select a country:", ["us", "uk", "ca", "au", "de", "fr", "es", "it", "br", "mx", "in"]) 
         with col2:
-            lang = st.selectbox("Select a language:", ["French", "English"]) 
-        st.write(name_to_api_key[api]["api_key"]) # Add more countries as needed
-        API_k = name_to_api_key[api]["api_key"]
-        client_ = name_to_api_key[api]["client_id"]
+            lang = st.selectbox("Select a language:", ["French", "English"])  # Add more countries as needed
+        client_ = name_to_api_key[client_credentials]["client_id"]
         if st.button("Fetch Data"):
             
             if uploaded_file is not None:
@@ -270,7 +268,7 @@ if authentication_status:
                 rankings, competition = brand_ranking(keywords,DB,your_brand_domain)
                 # Initialize the GoogleAdsClient with the credentials and developer token
                 api_client = GoogleAdsClient.load_from_dict(
-                    creds
+                    name_to_api_key[client_credentials]["credentials"]
                 )
                 #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
                 overview, monthly_results = generate_historical_metrics(api_client,client_,keywords)
