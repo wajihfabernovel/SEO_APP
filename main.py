@@ -190,14 +190,18 @@ def generate_historical_metrics(api_client, customer_id,keywords):
     return final_overview,final_monthly_results
     
 # Function to download the DataFrame as an Excel file
-def download_excel(df):
-    # Convert Polars DataFrame to Pandas DataFrame for Excel export
-    df_pd = df.to_pandas()
+def download_excel(df_dict):
     output = io.BytesIO()
-    with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        df_pd.to_excel(writer, index=False, sheet_name='Sheet1')
-    output.seek(0)
-    return output.getvalue()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:  
+        # Iterate through the dictionary of DataFrames and save each in a separate sheet
+        for sheet_name, df in df_dict.items():
+            df.to_excel(writer, index=False, sheet_name=sheet_name)
+    
+    # Save all DataFrames in the same workbook
+    writer.save()
+    
+    # Close the Pandas Excel writer
+    writer.close()
 
 
 # Streamlit UI
@@ -291,6 +295,12 @@ if authentication_status:
                 #st.write(competition)
                 
             # Download 
+            dataframes = {
+                'Sheet1': dataframes,
+                'Sheet2': overview,
+                'Sheet3': monthly_results,
+                'Sheet4': rankings
+            }
             st.write("\n\n\n")
             st.download_button(
                 label="Download data as Excel",
