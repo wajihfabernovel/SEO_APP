@@ -8,4 +8,3 @@ streamlit==1.26.0
 streamlit_authenticator==0.2.3
 openpyxl
 google-ads
-st_pages

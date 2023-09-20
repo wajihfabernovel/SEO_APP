@@ -5,6 +5,7 @@ import io
 import pandas as pd
 import streamlit_authenticator as stauth
 from google.ads.googleads.client import GoogleAdsClient
+import xlsxwriter
 
 pl.Config.set_tbl_hide_column_data_types(True)
 
@@ -69,7 +70,7 @@ def seo(keywords, DB):
         # Make sure the request was successful before processing
         if response.status_code == 200:
             df = pl.read_csv(io.StringIO(response.text), separator=';', eol_char='\n')
-            df = df.with_columns(pl.col("Competition").cast(pl.Float32))
+            #df = df.with_columns(pl.col("Competition").cast(pl.Float32))
             dfs = dfs.vstack(df)
             
         else:
@@ -79,14 +80,17 @@ def seo(keywords, DB):
 
 # Function to download the DataFrame as an Excel file
 
-def download_excel(df):
-# Convert Polars DataFrame to Pandas DataFrame for Excel export
-    df_pd = df.to_pandas()
+def to_excel(dfs, sheet_names):
+    """
+    Convert multiple dataframes to one Excel file with multiple sheets
+    """
     output = io.BytesIO()
-    with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        df_pd.to_excel(writer, index=False, sheet_name='Sheet1')
+    with xlsxwriter.Workbook(output) as writer:
+        for df, sheet_name in zip(dfs, sheet_names):
+            df.write_excel(writer, worksheet=sheet_name,has_header=True,autofit=True)
     output.seek(0)
-    return output.getvalue()
+    return output
+
 
 
 # Streamlit UI
@@ -246,7 +250,7 @@ if __name__ == "__main__":
             
             # Fetch and display SEO data
             dataframes = seo(keywords, DB)
-            rankings, competition = brand_ranking(keywords,DB,your_brand_domain)
+            rankings, competition = brand_ranking(keywords,DB.lower(),your_brand_domain)
             
             #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
     
@@ -258,10 +262,9 @@ if __name__ == "__main__":
                 
         elif keywords_input:
             keywords = keywords_input.split(',')
-
             # Fetch and display SEO data
-            dataframes = seo(keywords, DB)
-            rankings, competition = brand_ranking(keywords,DB,your_brand_domain)
+            dataframes = seo(keywords, DB.lower())
+            rankings, competition = brand_ranking(keywords,DB.lower(),your_brand_domain)
             # Initialize the GoogleAdsClient with the credentials and developer token
             #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
             
@@ -272,10 +275,11 @@ if __name__ == "__main__":
             #st.write(competition)
             
         st.write("\n\n\n")
+        excel_file = to_excel([dataframes, rankings], ["SemRush_Keyword", "SemRush_Ranking"])
         st.download_button(
-            label="Download data as Excel",
-            data= download_excel(dataframes),
-            file_name='volume.xlsx',
-            mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+        label="Download Excel file",
+        data=excel_file,
+        file_name="dataframes.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
         

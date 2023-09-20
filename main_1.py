@@ -6,7 +6,7 @@ import pandas as pd
 import streamlit_authenticator as stauth
 from google.ads.googleads.client import GoogleAdsClient
 import datetime 
-
+import xlsxwriter
 pl.Config.set_tbl_hide_column_data_types(True)
 
 
@@ -186,14 +186,17 @@ def generate_historical_metrics(api_client, customer_id,keywords,language,locati
     
 # Function to download the DataFrame as an Excel file
 
-def download_excel(df):
-# Convert Polars DataFrame to Pandas DataFrame for Excel export
-    df_pd = df.to_pandas()
+
+def to_excel(dfs, sheet_names):
+    """
+    Convert multiple dataframes to one Excel file with multiple sheets
+    """
     output = io.BytesIO()
-    with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        df_pd.to_excel(writer, index=False, sheet_name='Sheet1')
+    with xlsxwriter.Workbook(output) as writer:
+        for df, sheet_name in zip(dfs, sheet_names):
+            df.write_excel(writer, worksheet=sheet_name,has_header=True,autofit=True)
     output.seek(0)
-    return output.getvalue()
+    return output
 
 
 # Streamlit UI
@@ -311,10 +314,11 @@ if __name__ == "__main__":
             #st.write(competition)
             
         st.write("\n\n\n")
+        excel_file = to_excel([overview, monthly_results], ["search_volume_overview", "monthly_search_volume"])
         st.download_button(
-            label="Download data as Excel",
-            data= download_excel(monthly_results),
-            file_name='volume.xlsx',
-            mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+        label="Download Excel file",
+        data=excel_file,
+        file_name="dataframes.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
         
