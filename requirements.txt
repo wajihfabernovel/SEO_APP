@@ -9,3 +9,4 @@ streamlit_authenticator==0.2.3
 openpyxl
 google-ads
 st_pages
+xlsxwriter
