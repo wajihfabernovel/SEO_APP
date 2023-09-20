@@ -47,8 +47,8 @@ if authentication_status:
         
         show_pages(
             [
-                Page("./home.py", "Home", "🏠"),
-                Page("./main.py", "Google Ads Search Volume", "📈"),
+                Page("./main.py", "Home", "🏠"),
+                Page("./main_1.py", "Google Ads Search Volume", "📈"),
                 # Can use :<icon-name>: or the actual icon
                 Page("./main_2.py", "SemRush Ranking", ":books:")
                 # The pages appear in the order you pass them
