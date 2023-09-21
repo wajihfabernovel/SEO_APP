@@ -41,21 +41,20 @@ def brand_ranking (keywords,DB,your_brand_domain):
                 domain = df['Domain'][i]
                 position = df['Position'][i]
                 Keys = df['Key'][i]
+                for j in range (len(your_brand_domain)):
+                    if (domain in your_brand_domain[j]) or (your_brand_domain[j] in domain):
+                        your_brand_position = position
     
-                if (domain in your_brand_domain) or (your_brand_domain in domain):
-                    your_brand_position = position
+                        b = b.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(your_brand_domain[j]),brand_ranking= pl.lit(your_brand_position))
+                        rank = rank.vstack(b)
     
-                    b = b.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(your_brand_domain),brand_ranking= pl.lit(your_brand_position))
-                    rank = rank.vstack(b)
-    
-                else:
-                    t = t.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(domain), brand_ranking= pl.lit(position))
-                    competitors = competitors.vstack(t)            
+                    else:
+                        t = t.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(domain), brand_ranking= pl.lit(position))
+                        competitors = competitors.vstack(t)            
         else:
             print(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")
                 
-    return rank, competitors
-
+    return rank.pivot(values="brand_ranking",index="brand_domain",columns="keyword"), competitors
 
 
 def seo(keywords, DB):
@@ -249,7 +248,7 @@ if __name__ == "__main__":
             keywords = data['column_1'].to_list()
             
             # Fetch and display SEO data
-            dataframes = seo(keywords, DB)
+            dataframes = seo(keywords, DB.lower())
             rankings, competition = brand_ranking(keywords,DB.lower(),your_brand_domain)
             
             #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
