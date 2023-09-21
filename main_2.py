@@ -69,7 +69,7 @@ def seo(keywords, DB):
         # Make sure the request was successful before processing
         if response.status_code == 200:
             df = pl.read_csv(io.StringIO(response.text), separator=';', eol_char='\n')
-            #df = df.with_columns(pl.col("Competition").cast(pl.Float32))
+            df = df.with_columns(pl.col("Competition").cast(pl.Float32))
             dfs = dfs.vstack(df)
             
         else:
@@ -248,33 +248,27 @@ if __name__ == "__main__":
             keywords = data['column_1'].to_list()
             
             # Fetch and display SEO data
-            dataframes = seo(keywords, DB.lower())
             rankings, competition = brand_ranking(keywords,DB.lower(),your_brand_domain)
             
             #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
-    
-            st.write("SemRush Keyword Volume data")
-            st.write(dataframes)
             st.write("SemRush Keyword's ranking ")
-            st.write(rankings)
+            st.dataframe(rankings)
             #st.write(competition)
                 
         elif keywords_input:
             keywords = keywords_input.split(',')
+            your_brand_domain_input = your_brand_domain.split(',')
             # Fetch and display SEO data
-            dataframes = seo(keywords, DB.lower())
-            rankings, competition = brand_ranking(keywords,DB.lower(),your_brand_domain)
+            rankings, competition = brand_ranking(keywords,DB.lower(),your_brand_domain_input)
             # Initialize the GoogleAdsClient with the credentials and developer token
             #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
             
-            st.write("SemRush Keyword Volume data")
-            st.write(dataframes)
             st.write("SemRush Keyword's ranking ")
-            st.write(rankings)
+            st.dataframe(rankings)
             #st.write(competition)
             
         st.write("\n\n\n")
-        excel_file = to_excel([dataframes, rankings], ["SemRush_Keyword", "SemRush_Ranking"])
+        excel_file = to_excel([rankings], ["SemRush_Keyword", "SemRush_Ranking"])
         st.download_button(
         label="Download Excel file",
         data=excel_file,
