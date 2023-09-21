@@ -253,7 +253,7 @@ if __name__ == "__main__":
             #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
             st.write("SemRush Keyword's ranking ")
             st.dataframe(rankings,hide_index =True)
-            #st.write(competition)
+            st.dataframe(competition,hide_index =True)
                 
         elif keywords_input:
             keywords = keywords_input.split(',')
@@ -265,7 +265,8 @@ if __name__ == "__main__":
             
             st.write("SemRush Keyword's ranking ")
             st.dataframe(rankings,hide_index =True)
-            #st.write(competition)
+            st.dataframe(competition,hide_index =True)
+            
             
         st.write("\n\n\n")
         excel_file = to_excel([rankings], ["SemRush_Keyword", "SemRush_Ranking"])
