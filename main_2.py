@@ -7,6 +7,12 @@ import streamlit_authenticator as stauth
 from google.ads.googleads.client import GoogleAdsClient
 import xlsxwriter
 from streamlit_extras.dataframe_explorer import dataframe_explorer
+from pandas.api.types import (
+    is_categorical_dtype,
+    is_datetime64_any_dtype,
+    is_numeric_dtype,
+    is_object_dtype,
+)
 
 pl.Config.set_tbl_hide_column_data_types(True)
 
@@ -21,7 +27,7 @@ creds = {
     'refresh_token' : "1//03aBH-xmgK1j6CgYIARAAGAMSNwF-L9IrHTMIAOSWIcjj147tjSBl5Z83teClPGIF2S-wcGCrCtO83BlRy5VaT4PoPA06_EVx5hQ",
     'use_proto_plus' : "False"} 
 
-
+@st.cache_data
 def brand_ranking (keywords,DB,your_brand_domain): 
     
     dfs_r = pl.DataFrame([])  # List to store dataframes for each keyword
@@ -50,7 +56,7 @@ def brand_ranking (keywords,DB,your_brand_domain):
                         rank = rank.vstack(b)
     
                     else:
-                        t = t.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(domain), brand_ranking= pl.lit(position))
+                        t = t.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(domain), brand_ranking= pl.lit(position)).head(10)
                         competitors = competitors.vstack(t)            
         else:
             print(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")
@@ -78,6 +84,78 @@ def seo(keywords, DB):
 
     return dfs
 
+def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Adds a UI on top of a dataframe to let viewers filter columns
+
+    Args:
+        df (pd.DataFrame): Original dataframe
+
+    Returns:
+        pd.DataFrame: Filtered dataframe
+    """
+    # modify = st.checkbox("Add filters")
+
+    # if not modify:
+    #     return df
+
+    df = df.copy()
+
+    for col in df.columns:
+        if is_object_dtype(df[col]):
+            try:
+                df[col] = pd.to_datetime(df[col])
+            except Exception:
+                pass
+
+        if is_datetime64_any_dtype(df[col]):
+            df[col] = df[col].dt.tz_localize(None)
+
+    modification_container = st.container()
+
+    with modification_container:
+        to_filter_columns = st.multiselect("Filter dataframe on", df.columns)
+        for column in to_filter_columns:
+            left, right = st.columns((1, 20))
+            # Treat columns with < 10 unique values as categorical
+            if is_categorical_dtype(df[column]) or df[column].nunique() < 10:
+                user_cat_input = right.multiselect(
+                    f"Values for {column}",
+                    df[column].unique(),
+                    default=list(df[column].unique()),
+                )
+                df = df[df[column].isin(user_cat_input)]
+            elif is_numeric_dtype(df[column]):
+                _min = float(df[column].min())
+                _max = float(df[column].max())
+                step = (_max - _min) / 100
+                user_num_input = right.slider(
+                    f"Values for {column}",
+                    min_value=_min,
+                    max_value=_max,
+                    value=(_min, _max),
+                    step=step,
+                )
+                df = df[df[column].between(*user_num_input)]
+            elif is_datetime64_any_dtype(df[column]):
+                user_date_input = right.date_input(
+                    f"Values for {column}",
+                    value=(
+                        df[column].min(),
+                        df[column].max(),
+                    ),
+                )
+                if len(user_date_input) == 2:
+                    user_date_input = tuple(map(pd.to_datetime, user_date_input))
+                    start_date, end_date = user_date_input
+                    df = df.loc[df[column].between(start_date, end_date)]
+            else:
+                user_text_input = right.text_input(
+                    f"Substring or regex in {column}",
+                )
+                if user_text_input:
+                    df = df[df[column].astype(str).str.contains(user_text_input)]
+    return df
 # Function to download the DataFrame as an Excel file
 
 def to_excel(dfs, sheet_names):
@@ -97,6 +175,9 @@ def to_excel(dfs, sheet_names):
 
 if __name__ == "__main__":
     
+    if "load_state" not in st.session_state:
+        st.session_state.load_state = False
+        
     st.markdown("""
     <style>
     .logo {
@@ -117,7 +198,12 @@ if __name__ == "__main__":
     st.title("SemRush")
     st.write("Enter a keyword and select a country to fetch SEO data.")
 
-    uploaded_file = st.file_uploader("Upload an Excel file containing keywords", type=["xlsx"])
+    if 'user_input' not in st.session_state or st.session_state.user_input is None:
+        uploaded_file = st.file_uploader('Upload a file', type=['xlsx'])
+        if uploaded_file is not None:
+            st.session_state.user_input = uploaded_file
+    else:
+        uploaded_file = st.session_state.user_input
         
     # Allow user to manually enter keywords
     keywords_input = st.text_area("Or enter keywords manually (seperated by a , )")
@@ -242,7 +328,8 @@ if __name__ == "__main__":
 "ZM",
 "ZW"]) 
     
-    if st.button("Submit"):
+    if st.button("Submit") or st.session_state.load_state:    
+        st.session_state.load_state = True
         
         if uploaded_file is not None:
             data = pl.read_excel(uploaded_file,read_csv_options={"has_header": False})
@@ -267,9 +354,9 @@ if __name__ == "__main__":
             #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
             
             st.write("SemRush Keyword's ranking ")
-            filtered_rankings = dataframe_explorer(rankings, case=False)
+            filtered_rankings = dataframe_explorer(rankings.to_pandas(), case=False)
             st.dataframe(filtered_rankings,hide_index =True,use_container_width=True)
-            filtered_competition = dataframe_explorer(competition, case=False)
+            filtered_competition = dataframe_explorer(competition.to_pandas(), case=False)
             st.dataframe(filtered_competition,hide_index =True,use_container_width=True)
             
             
@@ -281,4 +368,4 @@ if __name__ == "__main__":
         file_name="dataframes.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
-        
+    
