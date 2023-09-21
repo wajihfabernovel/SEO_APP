@@ -252,7 +252,7 @@ if __name__ == "__main__":
             
             #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
             st.write("SemRush Keyword's ranking ")
-            st.dataframe(rankings)
+            st.dataframe(rankings,hide_index =True)
             #st.write(competition)
                 
         elif keywords_input:
@@ -264,7 +264,7 @@ if __name__ == "__main__":
             #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
             
             st.write("SemRush Keyword's ranking ")
-            st.dataframe(rankings)
+            st.dataframe(rankings,hide_index =True)
             #st.write(competition)
             
         st.write("\n\n\n")
