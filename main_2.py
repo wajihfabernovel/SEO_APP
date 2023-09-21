@@ -6,6 +6,7 @@ import pandas as pd
 import streamlit_authenticator as stauth
 from google.ads.googleads.client import GoogleAdsClient
 import xlsxwriter
+from streamlit_extras.dataframe_explorer import dataframe_explorer
 
 pl.Config.set_tbl_hide_column_data_types(True)
 
@@ -252,8 +253,10 @@ if __name__ == "__main__":
             
             #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
             st.write("SemRush Keyword's ranking ")
-            st.dataframe(rankings,hide_index =True)
-            st.dataframe(competition,hide_index =True)
+            filtered_rankings = dataframe_explorer(rankings, case=False)
+            st.dataframe(filtered_rankings,hide_index =True,use_container_width=True)
+            filtered_competition = dataframe_explorer(competition, case=False)
+            st.dataframe(filtered_competition,hide_index =True,use_container_width=True)
                 
         elif keywords_input:
             keywords = keywords_input.split(',')
@@ -264,8 +267,10 @@ if __name__ == "__main__":
             #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
             
             st.write("SemRush Keyword's ranking ")
-            st.dataframe(rankings,hide_index =True)
-            st.dataframe(competition,hide_index =True)
+            filtered_rankings = dataframe_explorer(rankings, case=False)
+            st.dataframe(filtered_rankings,hide_index =True,use_container_width=True)
+            filtered_competition = dataframe_explorer(competition, case=False)
+            st.dataframe(filtered_competition,hide_index =True,use_container_width=True)
             
             
         st.write("\n\n\n")
