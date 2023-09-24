@@ -318,6 +318,7 @@ if __name__ == "__main__":
             graph = graph.to_pandas()
             graph['ord_date'] = pd.to_datetime(graph['Date'], format='%B %Y')
             graph = graph.sort_values(by='ord_date')
+            st.write(graph)
             # Plotly graph 
             fig = px.line(graph, x="ord_date", y=graph.columns,
                           hover_data={"ord_date": "|%B %Y"},
