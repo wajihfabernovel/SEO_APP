@@ -292,6 +292,14 @@ if __name__ == "__main__":
             st.line_chart(graph,x = 'Date',
                             y = 'Appro_monthly',
                             color = 'search_query')
+            graph['ord_date'] = pd.to_datetime(graph['Date'], format='%B %Y')
+            graph = graph.sort_values(by='ord_date')
+            
+            st.line_chart(graph,x = 'ord_date',
+                            y = 'Appro_monthly',
+                            color = 'search_query',
+                            width = 700,
+                            height= 500)
 
             #st.write(competition)
                 
@@ -310,7 +318,7 @@ if __name__ == "__main__":
             graph['ord_date'] = pd.to_datetime(graph['Date'], format='%B %Y')
             graph = graph.sort_values(by='ord_date')
             
-            st.line_chart(graph,x = 'Date',
+            st.line_chart(graph,x = 'ord_date',
                             y = 'Appro_monthly',
                             color = 'search_query',
                             width = 700,
