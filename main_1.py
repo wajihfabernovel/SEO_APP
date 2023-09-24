@@ -317,8 +317,8 @@ if __name__ == "__main__":
             graph = graph.to_pandas()
             graph['ord_date'] = pd.to_datetime(graph['Date'], format='%B %Y')
             graph = graph.sort_values(by='ord_date')
-            
-            st.line_chart(graph,x = 'ord_date',
+            st.dataframe(graph)
+            st.line_chart(graph,x = 'Date',
                             y = 'Appro_monthly',
                             color = 'search_query',
                             width = 700,
