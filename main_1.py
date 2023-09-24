@@ -319,8 +319,8 @@ if __name__ == "__main__":
             st.write("\n\n\n\n\n")
             st.write(graph)
             # Plotly graph 
-            fig = px.line(graph, x="ord_date", y=graph.columns,
-                          hover_data={"ord_date": "|%B %Y"},
+            fig = px.line(graph, x="Date", y=graph.columns,
+                          hover_data={"Date": "|%B %Y"},
                           title='custom tick labels')
             fig.update_xaxes(
                 dtick="M1",
