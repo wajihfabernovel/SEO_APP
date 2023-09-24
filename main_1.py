@@ -174,16 +174,18 @@ def generate_historical_metrics(api_client, customer_id,keywords,language,locati
         # Approximate number of searches on this query for the past twelve months.
         for month in metric.monthly_search_volumes:
             if month.month == 13:
-                monthly_results = monthly_results.with_columns(search_query=pl.lit(result.text),Appro_monthly=month.monthly_searches, month = 1,Year = month.year+1)
+                monthly_results = monthly_results.with_columns(search_query=pl.lit(result.text),Appro_monthly=month.monthly_searches,day= 1, month = 1,Year = month.year+1)
                 final_monthly_results = final_monthly_results.vstack(monthly_results)
             else:   
-                monthly_results = monthly_results.with_columns(search_query=pl.lit(result.text),Appro_monthly=month.monthly_searches, month =month.month,Year = month.year) 
+                monthly_results = monthly_results.with_columns(search_query=pl.lit(result.text),Appro_monthly=month.monthly_searches,day= 1, month =month.month,Year = month.year) 
                 final_monthly_results = final_monthly_results.vstack(monthly_results)
                 
         final_monthly_results_final = final_monthly_results.with_columns(pl.col('month').apply(lambda x:datetime.date(1900, x, 1).strftime('%B')))
-        final_monthly_results_final = final_monthly_results_final.with_columns(pl.concat_str([pl.col("month"),pl.col("Year")],separator=" ").alias('Date'))
-        
-    return final_overview,final_monthly_results_final.pivot(values ="Appro_monthly", index = "search_query", columns = "Date"),final_monthly_results_final
+        final_monthly_results_final = final_monthly_results_final.with_columns(pl.concat_str([pl.col('day'),pl.col("month"),pl.col("Year")],separator=" ").alias('Date')).select(pl.col('search_query'),pl.col('Date'),pl.col('Appro_monthly')
+        final_monthly_results_final = final_monthly_results_final.with_columns(
+               pl.col("Date").str.to_date("%d %m %Y")
+            )
+    return final_overview,final_monthly_results_final.pivot(values ="Appro_monthly", index = "search_query", columns = "Date"),final_monthly_results_final.pivot(values ="Appro_monthly", index = "Date", columns = "search_query")
     
 # Function to download the DataFrame as an Excel file
 
@@ -315,9 +317,6 @@ if __name__ == "__main__":
             st.write("Google Keyword Palnner App Monthly Volume data")
             st.dataframe(monthly_results,hide_index =True,use_container_width=True)
             st.write("\n\n\n\n\n")
-            graph = graph.to_pandas()
-            graph['ord_date'] = pd.to_datetime(graph['Date'], format='%B %Y')
-            graph = graph.sort_values(by='ord_date')
             st.write(graph)
             # Plotly graph 
             fig = px.line(graph, x="ord_date", y=graph.columns,
