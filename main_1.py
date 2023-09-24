@@ -306,6 +306,9 @@ if __name__ == "__main__":
             st.write("Google Keyword Palnner App Monthly Volume data")
             st.dataframe(monthly_results,hide_index =True,use_container_width=True)
             st.write("\n\n\n\n\n")
+            graph['ord_date'] = pd.to_datetime(data['Date'], format='%B %Y')
+            graph = graph.sort_values(by='ord_date')
+            
             st.line_chart(graph,x = 'Date',
                             y = 'Appro_monthly',
                             color = 'search_query',
