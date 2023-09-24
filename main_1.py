@@ -7,6 +7,7 @@ import streamlit_authenticator as stauth
 from google.ads.googleads.client import GoogleAdsClient
 import datetime 
 import xlsxwriter
+import plotly.express as px
 pl.Config.set_tbl_hide_column_data_types(True)
 
 
@@ -317,11 +318,15 @@ if __name__ == "__main__":
             graph = graph.to_pandas()
             graph['ord_date'] = pd.to_datetime(graph['Date'], format='%B %Y')
             graph = graph.sort_values(by='ord_date')
-            st.line_chart(graph,x = 'ord_date',
-                            y = 'Appro_monthly',
-                            color = 'search_query',
-                            width = 700,
-                            height= 500)
+            # Plotly graph 
+            fig = px.line(graph, x="ord_date", y=graph.columns,
+                          hover_data={"date": "|%B %Y"},
+                          title='custom tick labels')
+            fig.update_xaxes(
+                dtick="M1",
+                tickformat="%b\n%Y")
+            st.plotly_chart(fig, use_container_width=True)
+            
             #st.write(competition)
             
         st.write("\n\n\n")
