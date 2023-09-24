@@ -320,7 +320,7 @@ if __name__ == "__main__":
             graph = graph.sort_values(by='ord_date')
             # Plotly graph 
             fig = px.line(graph, x="ord_date", y=graph.columns,
-                          hover_data={"date": "|%B %Y"},
+                          hover_data={"ord_date": "|%B %Y"},
                           title='custom tick labels')
             fig.update_xaxes(
                 dtick="M1",
