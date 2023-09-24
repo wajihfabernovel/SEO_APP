@@ -182,7 +182,7 @@ def generate_historical_metrics(api_client, customer_id,keywords,language,locati
                 
         final_monthly_results_final = final_monthly_results.with_columns(pl.col('month').apply(lambda x:datetime.date(1900, x, 1).strftime('%B')))
         final_monthly_results_final = final_monthly_results_final.with_columns(pl.concat_str([pl.col('day'),pl.col("month"),pl.col("Year")],separator=" ").alias('Date')).select(pl.col('search_query'),pl.col('Date'),pl.col('Appro_monthly'))
-        final_monthly_results_final = final_monthly_results_final.with_columns(pl.col("Date").str.to_date("%d %m %Y"))
+
     return final_overview,final_monthly_results_final.pivot(values ="Appro_monthly", index = "search_query", columns = "Date"),final_monthly_results_final.pivot(values ="Appro_monthly", index = "Date", columns = "search_query")
     
 # Function to download the DataFrame as an Excel file
