@@ -11,3 +11,4 @@ google-ads
 st_pages
 xlsxwriter
 streamlit_extras
+plotly
