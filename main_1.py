@@ -289,20 +289,19 @@ if __name__ == "__main__":
             
             overview, monthly_results,graph = generate_historical_metrics(api_client,client_,keywords,lang,DB,start_month,start_year,end_month,end_year)
             st.write("Google Keyword Planner Volume data")
-            st.write(overview)
+            st.dataframe(overview,hide_index =True,use_container_width=True)
             st.write("Google Keyword Palnner App Monthly Volume data")
-            st.write(monthly_results)
-            st.line_chart(graph,x = 'Date',
-                            y = 'Appro_monthly',
-                            color = 'search_query')
-            graph['ord_date'] = pd.to_datetime(graph['Date'], format='%B %Y')
-            graph = graph.sort_values(by='ord_date')
-            
-            st.line_chart(graph,x = 'ord_date',
-                            y = 'Appro_monthly',
-                            color = 'search_query',
-                            width = 700,
-                            height= 500)
+            st.dataframe(monthly_results,hide_index =True,use_container_width=True)
+            st.write("\n\n\n\n\n")
+            st.write(graph)
+            # Plotly graph 
+            fig = px.line(graph, x="Date", y=graph.columns,
+                          hover_data={"Date": "|%B %Y"},
+                          title='Keywords volume overtime')
+            fig.update_xaxes(
+                dtick="M1",
+                tickformat="%b\n%Y")
+            st.plotly_chart(fig, use_container_width=True)
 
             #st.write(competition)
                 
@@ -321,7 +320,7 @@ if __name__ == "__main__":
             # Plotly graph 
             fig = px.line(graph, x="Date", y=graph.columns,
                           hover_data={"Date": "|%B %Y"},
-                          title='custom tick labels')
+                          title='Keywords volume overtime')
             fig.update_xaxes(
                 dtick="M1",
                 tickformat="%b\n%Y")
