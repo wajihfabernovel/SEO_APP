@@ -293,7 +293,7 @@ if __name__ == "__main__":
             st.write("Google Keyword Palnner App Monthly Volume data")
             st.dataframe(monthly_results,hide_index =True,use_container_width=True)
             st.write("\n\n\n\n\n")
-            st.write(graph)
+        
             # Plotly graph 
             fig = px.line(graph, x="Date", y=graph.columns,
                           hover_data={"Date": "|%B %Y"},
@@ -316,7 +316,7 @@ if __name__ == "__main__":
             st.write("Google Keyword Palnner App Monthly Volume data")
             st.dataframe(monthly_results,hide_index =True,use_container_width=True)
             st.write("\n\n\n\n\n")
-            st.write(graph)
+            
             # Plotly graph 
             fig = px.line(graph, x="Date", y=graph.columns,
                           hover_data={"Date": "|%B %Y"},
