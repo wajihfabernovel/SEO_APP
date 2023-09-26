@@ -364,10 +364,10 @@ if __name__ == "__main__":
             
         st.write("\n\n\n")
         #excel_file = to_excel([rankings], ["SemRush_Keyword", "SemRush_Ranking"])
-        st.download_button(
-        label="Download Excel file",
-        data=excel_file,
-        file_name="dataframes.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    )
+        #st.download_button(
+        #label="Download Excel file",
+        #data=excel_file,
+        #file_name="dataframes.xlsx",
+        #mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+   # )
     
