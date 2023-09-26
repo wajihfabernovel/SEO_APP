@@ -61,7 +61,7 @@ def brand_ranking (keywords,DB,your_brand_domain):
         else:
             print(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")
                 
-    return rank.pivot(values="brand_ranking",index="brand_domain",columns="keyword"), competitors.unique(maintain_order=True)
+    return rank, competitors.unique(maintain_order=True)
 
 
 def seo(keywords, DB):
