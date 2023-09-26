@@ -359,7 +359,7 @@ if __name__ == "__main__":
             #filtered_rankings = dataframe_explorer(rankings.to_pandas(), case=False)
             #st.dataframe(filtered_rankings,hide_index =True,use_container_width=True)
             #filtered_competition = dataframe_explorer(competition.to_pandas(), case=False)
-            st.dataframe(filtered_competition,hide_index =True,use_container_width=True)
+            #st.dataframe(filtered_competition,hide_index =True,use_container_width=True)
             
             
         st.write("\n\n\n")
