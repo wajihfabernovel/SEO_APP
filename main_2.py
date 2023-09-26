@@ -56,12 +56,13 @@ def brand_ranking (keywords,DB,your_brand_domain):
                         rank = rank.vstack(b)
     
                     else:
+                        print("here")
                         t = t.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(domain), brand_ranking= pl.lit(position))
                         competitors = competitors.vstack(t)            
         else:
             print(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")
                 
-    return competitors.unique(maintain_order=True)
+    return rank
 
 
 def seo(keywords, DB):
