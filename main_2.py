@@ -61,7 +61,7 @@ def brand_ranking (keywords,DB,your_brand_domain):
         else:
             print(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")
                 
-    return rank, competitors.unique(maintain_order=True)
+    return competitors.unique(maintain_order=True)
 
 
 def seo(keywords, DB):
@@ -349,20 +349,20 @@ if __name__ == "__main__":
             keywords = keywords_input.split(',')
             your_brand_domain_input = your_brand_domain.split(',')
             # Fetch and display SEO data
-            rankings, competition = brand_ranking(keywords,DB.lower(),your_brand_domain_input)
+            competition = brand_ranking(keywords,DB.lower(),your_brand_domain_input)
             # Initialize the GoogleAdsClient with the credentials and developer token
             #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
             
             st.write("SemRush Keyword's ranking ")
-            st.write(rankings)
-            filtered_rankings = dataframe_explorer(rankings.to_pandas(), case=False)
-            st.dataframe(filtered_rankings,hide_index =True,use_container_width=True)
+            st.write(competition)
+            #filtered_rankings = dataframe_explorer(rankings.to_pandas(), case=False)
+            #st.dataframe(filtered_rankings,hide_index =True,use_container_width=True)
             filtered_competition = dataframe_explorer(competition.to_pandas(), case=False)
             st.dataframe(filtered_competition,hide_index =True,use_container_width=True)
             
             
         st.write("\n\n\n")
-        excel_file = to_excel([rankings], ["SemRush_Keyword", "SemRush_Ranking"])
+        #excel_file = to_excel([rankings], ["SemRush_Keyword", "SemRush_Ranking"])
         st.download_button(
         label="Download Excel file",
         data=excel_file,
