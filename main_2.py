@@ -61,7 +61,7 @@ def brand_ranking (keywords,DB,your_brand_domain):
         else:
             print(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")
                 
-    return rank.pivot(values="brand_ranking",index="brand_domain",columns="keyword"), competitors.unique(maintain_order=True)
+    return rank, competitors.unique(maintain_order=True)
 
 
 def seo(keywords, DB):
@@ -354,6 +354,7 @@ if __name__ == "__main__":
             #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
             
             st.write("SemRush Keyword's ranking ")
+            st.write(rankings)
             filtered_rankings = dataframe_explorer(rankings.to_pandas(), case=False)
             st.dataframe(filtered_rankings,hide_index =True,use_container_width=True)
             filtered_competition = dataframe_explorer(competition.to_pandas(), case=False)
