@@ -258,7 +258,9 @@ if __name__ == "__main__":
     with col3:
         start_d = st.date_input("Choose the start date",format="YYYY/MM/DD")
     with col4:
-        end_d = st.date_input("Choose the end date",format="YYYY/MM/DD")
+        today = datetime.datetime.now()
+        max = datetime.date(today.year,today.month - 1, 30)
+        end_d = st.date_input("Choose the end date",format="YYYY/MM/DD",max_value =max)
         
     # Transform the month 13 to 1 of the next year 
     if datetime.datetime.strptime(str(start_d), "%Y-%m-%d").month == 1 :    
