@@ -256,9 +256,10 @@ if __name__ == "__main__":
         lang = st.selectbox("Select a language:", list_language)  # Add more countries as needed
     col3, col4 = st.columns(2)   
     with col3:
-        start_d = st.date_input("Choose the start date",format="YYYY/MM/DD")
-    with col4:
         today = datetime.datetime.now()
+        min = datetime.date(today.year-2,today.month, 1)
+        start_d = st.date_input("Choose the start date",format="YYYY/MM/DD",min_value =min)
+    with col4:
         max = datetime.date(today.year,today.month - 1, 30)
         end_d = st.date_input("Choose the end date",format="YYYY/MM/DD",max_value =max)
         
