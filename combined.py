@@ -624,7 +624,9 @@ if __name__ == "__main__":
             st.write("\n\n\n\n\n")
             
             # Fetch and display SEO data
-            rankings, competition = brand_ranking(keywords,DB_sem.lower(),your_brand_domain)
+            your_brand_domain_input = your_brand_domain.split(',')
+            # Fetch and display SEO data
+            rankings, competition = brand_ranking(keywords,DB_sem.lower(),your_brand_domain_input)
             
             #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
             st.write("SemRush Keyword's ranking ")
