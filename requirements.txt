@@ -12,3 +12,4 @@ st_pages
 xlsxwriter
 streamlit_extras
 plotly
+xlsx2csv
