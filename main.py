@@ -7,6 +7,7 @@ import pandas as pd
 import streamlit_authenticator as stauth
 from google.ads.googleads.client import GoogleAdsClient
 
+
 pl.Config.set_tbl_hide_column_data_types(True)
 
 #Import the YAML file into your script
@@ -26,6 +27,8 @@ authenticator = stauth.Authenticate(
 ) 
     
 name, authentication_status, username = authenticator.login('Login', 'main')    
+
+    
 # Streamlit UI
 if authentication_status:
     authenticator.logout('Logout', 'main')
@@ -48,9 +51,7 @@ if authentication_status:
         show_pages(
             [
                 Page("./main.py", "Home", "🏠"),
-                Page("./main_1.py", "Google Ads Search Volume", "📈"),
-                # Can use :<icon-name>: or the actual icon
-                Page("./main_2.py", "SemRush Ranking", ":books:")
+                Page("./combined.py", "SEO Tool", "📈")
                 # The pages appear in the order you pass them
                 ]
         )
