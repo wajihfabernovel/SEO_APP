@@ -599,6 +599,7 @@ if __name__ == "__main__":
         
         if uploaded_file is not None:
             data = pl.read_excel(uploaded_file,read_csv_options={"has_header": False})
+            st.write(data.head())
             keywords = data['column_1'].to_list()
             
             # Fetch and display SEO data
