@@ -630,10 +630,10 @@ if __name__ == "__main__":
             
             #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
             st.write("SemRush Keyword's ranking ")
-            filtered_rankings = dataframe_explorer(rankings, case=False)
+            filtered_rankings = dataframe_explorer(rankings.to_pandas(), case=False)
             st.dataframe(filtered_rankings,hide_index =True,use_container_width=True)
-            filtered_competition = dataframe_explorer(competition, case=False)
-            st.dataframe(filtered_competition,hide_index =True,use_container_width=True)
+            filtered_competition = dataframe_explorer(competition.to_pandas(), case=False)
+            st.dataframe(filtered_competition,hide_index =True,use_container_width=True) 
             #st.write(competition)
                 
         elif keywords_input:
