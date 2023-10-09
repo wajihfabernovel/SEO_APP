@@ -599,7 +599,6 @@ if __name__ == "__main__":
         
         if uploaded_file is not None:
             data = pl.read_excel(uploaded_file,read_csv_options={"has_header": False})
-            st.write(data.head())
             keywords = data['column_1'].to_list()
             
             # Fetch and display SEO data
@@ -622,8 +621,6 @@ if __name__ == "__main__":
                 tickformat="%b\n%Y")
             st.plotly_chart(fig, use_container_width=True)
             st.write("\n\n\n\n\n")
-            
-            # Fetch and display SEO data
             your_brand_domain_input = your_brand_domain.split(',')
             # Fetch and display SEO data
             rankings, competition = brand_ranking(keywords,DB_sem.lower(),your_brand_domain_input)
@@ -633,8 +630,27 @@ if __name__ == "__main__":
             filtered_rankings = dataframe_explorer(rankings.to_pandas(), case=False)
             st.dataframe(filtered_rankings,hide_index =True,use_container_width=True)
             filtered_competition = dataframe_explorer(competition.to_pandas(), case=False)
-            st.dataframe(filtered_competition,hide_index =True,use_container_width=True) 
-            #st.write(competition)
+            st.dataframe(filtered_competition,hide_index =True,use_container_width=True)            
+      
+            myAPIToken = 'c186250c0f3ba9502c38caa53efc7edb'
+            params = {
+                "action": "export_ctr",
+                "token": myAPIToken,  # Get token from environment variable
+                "inputs": f'{{"date":"{web_date_final}", "searches-type":"{web_search}", "value":"{web_val}", "device":"{web_device}", "audience":"{web_aud}", "format":"json"}}'
+            }
+            
+            url = f"https://api.awrcloud.com/v2/get.php"
+
+            response = requests.get(url, params=params)
+
+            # Make sure the request was successful before processing
+
+            data = response.json()
+            web_ranking = pl.DataFrame(data["details"]).with_columns(pl.col("position").cast(pl.Int32).alias("position"))
+            final_table = competition.join(web_ranking,left_on="brand_ranking", right_on="position").join(overview,left_on="keyword",right_on="search_query").select(["brand_domain","keyword","brand_ranking","web_ctr","appro_monthly_search"]).sort(["brand_domain","brand_ranking"], descending=[False, False]).with_columns(pl.col("appro_monthly_search").sum().over("brand_domain").alias("sum")).with_columns((((pl.col("appro_monthly_search")*(pl.col("web_ctr")/100))/pl.col("sum"))*100).alias("Part_des_voix_%")).select(["brand_domain","keyword","Part_des_voix_%"]).to_pandas()
+            #st.dataframe(dataframe_explorer(final_table, case=False),hide_index =True,use_container_width=True) 
+            bar_chart = final_table.groupby(['brand_domain'])["Part_des_voix_%"].sum().reset_index()
+            st.dataframe(dataframe_explorer(bar_chart, case=False),hide_index =True,use_container_width=True) 
                 
         elif keywords_input:
             keywords = keywords_input.split(',')
