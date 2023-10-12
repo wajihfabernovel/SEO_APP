@@ -266,8 +266,8 @@ def brand_ranking (keywords,DB,your_brand_domain):
                         competitors = competitors.vstack(t)            
         else:
             print(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")
-                
-    return rank.pivot(values="brand_ranking",index="keyword",columns="brand_domain"), competitors.unique(maintain_order=True)
+     
+    return rank,rank.pivot(values="brand_ranking",index="keyword",columns="brand_domain")   , competitors.unique(maintain_order=True)
 
 
 def seo(keywords, DB):
@@ -623,7 +623,7 @@ if __name__ == "__main__":
             st.write("\n\n\n\n\n")
             your_brand_domain_input = your_brand_domain.split(',')
             # Fetch and display SEO data
-            rankings, competition = brand_ranking(keywords,DB_sem.lower(),your_brand_domain_input)
+            rank_,rankings, competition = brand_ranking(keywords,DB_sem.lower(),your_brand_domain_input)
             
             #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
             st.write("SemRush Keyword's ranking ")
@@ -644,17 +644,18 @@ if __name__ == "__main__":
             response = requests.get(url, params=params)
 
             # Make sure the request was successful before processing
-
+            
             data = response.json()
             web_ranking = pl.DataFrame(data["details"]).with_columns(pl.col("position").cast(pl.Int32).alias("position"))
-            final_table = competition.join(web_ranking,left_on="brand_ranking", right_on="position").join(overview,left_on="keyword",right_on="search_query").select(["brand_domain","keyword","brand_ranking","web_ctr","appro_monthly_search"]).sort(["brand_domain","brand_ranking"], descending=[False, False]).with_columns(pl.col("appro_monthly_search").sum().over("brand_domain").alias("sum")).with_columns((((pl.col("appro_monthly_search")*(pl.col("web_ctr")/100))/pl.col("sum"))*100).alias("Part_des_voix_%")).select(["brand_domain","keyword","Part_des_voix_%"]).to_pandas()
+            final_table = competition.vstack(rank_).join(web_ranking,left_on="brand_ranking", right_on="position").join(overview,left_on="keyword",right_on="search_query").select(["brand_domain","keyword","brand_ranking","web_ctr","appro_monthly_search"]).sort(["brand_domain","brand_ranking"], descending=[False, False]).with_columns(pl.col("appro_monthly_search").sum().over("brand_domain").alias("sum")).with_columns((((pl.col("appro_monthly_search")*(pl.col("web_ctr")/100))/pl.col("sum"))*100).alias("Part_des_voix_%")).select(["brand_domain","keyword","Part_des_voix_%"]).to_pandas()
             #st.dataframe(dataframe_explorer(final_table, case=False),hide_index =True,use_container_width=True) 
-            bar_chart = final_table.groupby(['brand_domain'])["Part_des_voix_%"].sum().reset_index()
+            bar_chart = final_table.groupby(['brand_domain'])["Part_des_voix_%"].sum().reset_index().sort_values(by="Part_des_voix_%", ascending=False).head(10)
             st.dataframe(dataframe_explorer(bar_chart, case=False),hide_index =True,use_container_width=True) 
                 
         elif keywords_input:
-            keywords = keywords_input.split(',')
-
+            st.write(keywords_input)
+            keywords = keywords_input.split('\n')
+            
             #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
             overview, monthly_results, graph = generate_historical_metrics(api_client,client_,keywords,lang,DB,start_month,start_year,end_month,end_year)
 
@@ -675,7 +676,7 @@ if __name__ == "__main__":
             st.write("\n\n\n\n\n")
             your_brand_domain_input = your_brand_domain.split(',')
             # Fetch and display SEO data
-            rankings, competition = brand_ranking(keywords,DB_sem.lower(),your_brand_domain_input)
+            rank_,rankings, competition = brand_ranking(keywords,DB_sem.lower(),your_brand_domain_input)
             # Initialize the GoogleAdsClient with the credentials and developer token
             #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
             
@@ -697,12 +698,11 @@ if __name__ == "__main__":
             response = requests.get(url, params=params)
 
             # Make sure the request was successful before processing
-
             data = response.json()
             web_ranking = pl.DataFrame(data["details"]).with_columns(pl.col("position").cast(pl.Int32).alias("position"))
-            final_table = competition.join(web_ranking,left_on="brand_ranking", right_on="position").join(overview,left_on="keyword",right_on="search_query").select(["brand_domain","keyword","brand_ranking","web_ctr","appro_monthly_search"]).sort(["brand_domain","brand_ranking"], descending=[False, False]).with_columns(pl.col("appro_monthly_search").sum().over("brand_domain").alias("sum")).with_columns((((pl.col("appro_monthly_search")*(pl.col("web_ctr")/100))/pl.col("sum"))*100).alias("Part_des_voix_%")).select(["brand_domain","keyword","Part_des_voix_%"]).to_pandas()
+            final_table = competition.vstack(rank_).join(web_ranking,left_on="brand_ranking", right_on="position").join(overview,left_on="keyword",right_on="search_query").select(["brand_domain","keyword","brand_ranking","web_ctr","appro_monthly_search"]).sort(["brand_domain","brand_ranking"], descending=[False, False]).with_columns(pl.col("appro_monthly_search").sum().over("brand_domain").alias("sum")).with_columns((((pl.col("appro_monthly_search")*(pl.col("web_ctr")/100))/pl.col("sum"))*100).alias("Part_des_voix_%")).select(["brand_domain","keyword","Part_des_voix_%"]).to_pandas()
             #st.dataframe(dataframe_explorer(final_table, case=False),hide_index =True,use_container_width=True) 
-            bar_chart = final_table.groupby(['brand_domain'])["Part_des_voix_%"].sum().reset_index()
+            bar_chart = final_table.groupby(['brand_domain'])["Part_des_voix_%"].sum().reset_index().sort_values(by="Part_des_voix_%", ascending=False).head(10)
             st.dataframe(dataframe_explorer(bar_chart, case=False),hide_index =True,use_container_width=True)    
                 
         fig_1 = px.bar(bar_chart, y='Part_des_voix_%', x='brand_domain', text_auto='.2s')
