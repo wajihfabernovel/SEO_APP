@@ -242,38 +242,33 @@ def brand_ranking (keywords,DB,your_brand_domain):
     t = pl.DataFrame([])
     b = pl.DataFrame([])
     rank = pl.DataFrame([])
-    try: 
-        for keyword in keywords:
-            url = f"https://api.semrush.com/?type=phrase_organic&key={API_KEY_SEM}&phrase={keyword}&export_columns=Kd,Dn,Po,&database={DB}"
-            response = requests.get(url)
-            # Make sure the request was successful before processing
-            if response.status_code == 200:
-                df = pl.read_csv(io.StringIO(response.text), separator=';', eol_char='\n').with_columns(Key=pl.lit(keyword))
-                dfs_r = dfs_r.vstack(df)
-    
-                for i in range(len(df)):
-                    domain = df['Domain'][i]
-                    position = df['Position'][i]
-                    Keys = df['Key'][i]
-                    for j in range (len(your_brand_domain)):
-                        if (domain in your_brand_domain[j]) or (your_brand_domain[j] in domain):
-                            your_brand_position = position
-        
-                            b = b.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(your_brand_domain[j]),brand_ranking= pl.lit(your_brand_position))
-                            rank = rank.vstack(b)
-        
-                        else:
-                            t = t.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(domain), brand_ranking= pl.lit(position)).head(10)
-                            competitors = competitors.vstack(t)            
-            else:
-                print(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")
-            return rank,rank.pivot(values="brand_ranking",index="keyword",columns="brand_domain")   , competitors.unique(maintain_order=True)
-    except: 
-        return print("the domain you want to check is not among the top 100 for the keywords you chose")
 
-        
-     
+    for keyword in keywords:
+        url = f"https://api.semrush.com/?type=phrase_organic&key={API_KEY_SEM}&phrase={keyword}&export_columns=Kd,Dn,Po,&database={DB}"
+        response = requests.get(url)
+        # Make sure the request was successful before processing
+        if response.status_code == 200:
+            df = pl.read_csv(io.StringIO(response.text), separator=';', eol_char='\n').with_columns(Key=pl.lit(keyword))
+            dfs_r = dfs_r.vstack(df)
+
+            for i in range(len(df)):
+                domain = df['Domain'][i]
+                position = df['Position'][i]
+                Keys = df['Key'][i]
+                for j in range (len(your_brand_domain)):
+                    if (domain in your_brand_domain[j]) or (your_brand_domain[j] in domain):
+                        your_brand_position = position
     
+                        b = b.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(your_brand_domain[j]),brand_ranking= pl.lit(your_brand_position))
+                        rank = rank.vstack(b)
+    
+                    else:
+                        t = t.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(domain), brand_ranking= pl.lit(position)).head(10)
+                        competitors = competitors.vstack(t)            
+        else:
+            print(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")
+        return rank,rank.pivot(values="brand_ranking",index="keyword",columns="brand_domain")   , competitors.unique(maintain_order=True)
+
 
 
 def seo(keywords, DB):
