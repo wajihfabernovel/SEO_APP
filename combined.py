@@ -679,16 +679,16 @@ if __name__ == "__main__":
             # Fetch and display SEO data
             try: 
                 rank_,rankings, competition = brand_ranking(keywords,DB_sem.lower(),your_brand_domain_input)
+                st.write("SemRush Keyword's ranking ")
+                filtered_rankings = dataframe_explorer(rankings.to_pandas(), case=False)
+                st.dataframe(filtered_rankings,hide_index =True,use_container_width=True)
+                filtered_competition = dataframe_explorer(competition.to_pandas(), case=False)
+                st.dataframe(filtered_competition,hide_index =True,use_container_width=True)
             except: 
                 print('the domain you typed is not part of the top 100 domains')
             # Initialize the GoogleAdsClient with the credentials and developer token
             #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
-            
-            st.write("SemRush Keyword's ranking ")
-            filtered_rankings = dataframe_explorer(rankings.to_pandas(), case=False)
-            st.dataframe(filtered_rankings,hide_index =True,use_container_width=True)
-            filtered_competition = dataframe_explorer(competition.to_pandas(), case=False)
-            st.dataframe(filtered_competition,hide_index =True,use_container_width=True)            
+                        
       
             myAPIToken = 'c186250c0f3ba9502c38caa53efc7edb'
             params = {
