@@ -685,34 +685,34 @@ if __name__ == "__main__":
                 filtered_competition = dataframe_explorer(competition.to_pandas(), case=False)
                 st.dataframe(filtered_competition,hide_index =True,use_container_width=True)
                 myAPIToken = 'c186250c0f3ba9502c38caa53efc7edb'
-            params = {
-                "action": "export_ctr",
-                "token": myAPIToken,  # Get token from environment variable
-                "inputs": f'{{"date":"{web_date_final}", "searches-type":"{web_search}", "value":"{web_val}", "device":"{web_device}", "audience":"{web_aud}", "format":"json"}}'
-            }
-            
-            url = f"https://api.awrcloud.com/v2/get.php"
-
-            response = requests.get(url, params=params)
-
-            # Make sure the request was successful before processing
-            data = response.json()
-            web_ranking = pl.DataFrame(data["details"]).with_columns(pl.col("position").cast(pl.Int32).alias("position"))
-            final_table = competition.vstack(rank_).join(web_ranking,left_on="brand_ranking", right_on="position").join(overview,left_on="keyword",right_on="search_query").select(["brand_domain","keyword","brand_ranking","web_ctr","appro_monthly_search"]).sort(["brand_domain","brand_ranking"], descending=[False, False]).with_columns(pl.col("appro_monthly_search").sum().over("brand_domain").alias("sum")).with_columns((((pl.col("appro_monthly_search")*(pl.col("web_ctr")/100))/pl.col("sum"))*100).alias("Part_des_voix_%")).select(["brand_domain","keyword","Part_des_voix_%"]).to_pandas()
-            #st.dataframe(dataframe_explorer(final_table, case=False),hide_index =True,use_container_width=True) 
-            bar_chart = final_table.groupby(['brand_domain'])["Part_des_voix_%"].sum().reset_index().sort_values(by="Part_des_voix_%", ascending=False).head(10)
-            st.dataframe(dataframe_explorer(bar_chart, case=False),hide_index =True,use_container_width=True)    
+                params = {
+                    "action": "export_ctr",
+                    "token": myAPIToken,  # Get token from environment variable
+                    "inputs": f'{{"date":"{web_date_final}", "searches-type":"{web_search}", "value":"{web_val}", "device":"{web_device}", "audience":"{web_aud}", "format":"json"}}'
+                }
                 
-            fig_1 = px.bar(bar_chart, y='Part_des_voix_%', x='brand_domain', text_auto='.2s')
-            st.plotly_chart(fig_1, use_container_width=True)
-            st.write("\n\n\n")
-            excel_file = to_excel([overview, monthly_results,rankings,competition], ["search_volume_overview", "monthly_search_volume","SemRush_Keyword", "SemRush_Ranking"])
-            st.download_button(
-            label="Download Excel file",
-            data=excel_file,
-            file_name="dataframes.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        )
+                url = f"https://api.awrcloud.com/v2/get.php"
+    
+                response = requests.get(url, params=params)
+    
+                # Make sure the request was successful before processing
+                data = response.json()
+                web_ranking = pl.DataFrame(data["details"]).with_columns(pl.col("position").cast(pl.Int32).alias("position"))
+                final_table = competition.vstack(rank_).join(web_ranking,left_on="brand_ranking", right_on="position").join(overview,left_on="keyword",right_on="search_query").select(["brand_domain","keyword","brand_ranking","web_ctr","appro_monthly_search"]).sort(["brand_domain","brand_ranking"], descending=[False, False]).with_columns(pl.col("appro_monthly_search").sum().over("brand_domain").alias("sum")).with_columns((((pl.col("appro_monthly_search")*(pl.col("web_ctr")/100))/pl.col("sum"))*100).alias("Part_des_voix_%")).select(["brand_domain","keyword","Part_des_voix_%"]).to_pandas()
+                #st.dataframe(dataframe_explorer(final_table, case=False),hide_index =True,use_container_width=True) 
+                bar_chart = final_table.groupby(['brand_domain'])["Part_des_voix_%"].sum().reset_index().sort_values(by="Part_des_voix_%", ascending=False).head(10)
+                st.dataframe(dataframe_explorer(bar_chart, case=False),hide_index =True,use_container_width=True)    
+                    
+                fig_1 = px.bar(bar_chart, y='Part_des_voix_%', x='brand_domain', text_auto='.2s')
+                st.plotly_chart(fig_1, use_container_width=True)
+                st.write("\n\n\n")
+                excel_file = to_excel([overview, monthly_results,rankings,competition], ["search_volume_overview", "monthly_search_volume","SemRush_Keyword", "SemRush_Ranking"])
+                st.download_button(
+                label="Download Excel file",
+                data=excel_file,
+                file_name="dataframes.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )
             except: 
                 print('the domain you typed is not part of the top 100 domains')
             # Initialize the GoogleAdsClient with the credentials and developer token
