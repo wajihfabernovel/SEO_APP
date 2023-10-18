@@ -654,7 +654,7 @@ if __name__ == "__main__":
             st.dataframe(dataframe_explorer(bar_chart, case=False),hide_index =True,use_container_width=True) 
                 
         elif keywords_input:
-            st.write(keywords_input)
+            
             keywords = keywords_input.split('\n')
             
             #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
@@ -714,7 +714,7 @@ if __name__ == "__main__":
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             )
             except: 
-                print('the domain you typed is not part of the top 100 domains')
+                st.write('the domain you typed is not part of the top 100 domains')
             # Initialize the GoogleAdsClient with the credentials and developer token
             #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
                         
