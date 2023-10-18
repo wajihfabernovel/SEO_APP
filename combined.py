@@ -677,7 +677,10 @@ if __name__ == "__main__":
             st.write("\n\n\n\n\n")
             your_brand_domain_input = your_brand_domain.split(',')
             # Fetch and display SEO data
-            rank_,rankings, competition = brand_ranking(keywords,DB_sem.lower(),your_brand_domain_input)
+            try: 
+                rank_,rankings, competition = brand_ranking(keywords,DB_sem.lower(),your_brand_domain_input)
+            else: 
+                print('the domain you typed is not part of the top 100 domains')
             # Initialize the GoogleAdsClient with the credentials and developer token
             #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
             
