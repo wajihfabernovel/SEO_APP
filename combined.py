@@ -714,7 +714,7 @@ if __name__ == "__main__":
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             )
             except: 
-                st.write('the domain you typed is not part of the top 100 domains')
+                st.error('The domain you chose is not part of the top 100 domains for any of the keyword(s) ! Please choose another domain or change the keyword(s)', icon="🚨")
             # Initialize the GoogleAdsClient with the credentials and developer token
             #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
                         
