@@ -242,7 +242,7 @@ def brand_ranking (keywords,DB,your_brand_domain):
     t = pl.DataFrame([])
     b = pl.DataFrame([])
     rank = pl.DataFrame([])
-
+    API_KEY_SEM = 'e31f38c36540a234e23b614a7ffb4fc4'
     for keyword in keywords:
         url = f"https://api.semrush.com/?type=phrase_organic&key={API_KEY_SEM}&phrase={keyword}&export_columns=Kd,Dn,Po,&database={DB}"
         response = requests.get(url)
@@ -259,7 +259,7 @@ def brand_ranking (keywords,DB,your_brand_domain):
                     if (domain in your_brand_domain[j]) or (your_brand_domain[j] in domain):
                         your_brand_position = position
     
-                        b = b.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(your_brand_domain[j]),brand_ranking= pl.lit(your_brand_position))
+                        b = b.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(domain),brand_ranking= pl.lit(your_brand_position))
                         rank = rank.vstack(b)
     
                     else:
@@ -267,8 +267,12 @@ def brand_ranking (keywords,DB,your_brand_domain):
                         competitors = competitors.vstack(t)            
         else:
             print(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")
+            
+    if rank.is_empty(): 
+        return rank, rank, competitors.unique(maintain_order=True)
+    else : 
+        print(rank.head(3))
         return rank,rank.pivot(values="brand_ranking",index="keyword",columns="brand_domain")   , competitors.unique(maintain_order=True)
-
 
 
 def seo(keywords, DB):
@@ -402,7 +406,7 @@ if __name__ == "__main__":
     uploaded_file = st.file_uploader("Upload an Excel file containing keywords", type=["xlsx"])
         
     # Allow user to manually enter keywords
-    keywords_input = st.text_area("Or enter keywords manually (seperated by a , )")
+    keywords_input = st.text_area("Or enter keywords manually (seperated by a line)")
     st.title("Google Ads")
     col1, col2 = st.columns(2)
 
@@ -418,9 +422,11 @@ if __name__ == "__main__":
     list_location=location_full_list(api_client,client_)
     
     with col1:
-        DB = st.selectbox("Select a country:", list_location) 
+        default_ix = list_location.index("France")
+        DB = st.selectbox("Select a country:", list_location, index = default_ix) 
     with col2:
-        lang = st.selectbox("Select a language:", list_language)  # Add more countries as needed
+        default_ix_2 = list_language.index("French")
+        lang = st.selectbox("Select a language:", list_language, index= default_ix_2)  # Add more countries as needed
     col3, col4 = st.columns(2)   
     with col3:
         today = datetime.datetime.now()
@@ -453,8 +459,7 @@ if __name__ == "__main__":
     # Allow user to manually enter keywords
     
     your_brand_domain = st.text_input("Enter your brand domain")
-    
-    DB_sem = st.selectbox("Select a country:", ["AF",
+    sem_lang = ["AF",
     "AL",
     "DZ",
     "AO",
@@ -570,7 +575,9 @@ if __name__ == "__main__":
     "VE",
     "VN",
     "ZM",
-    "ZW"]) 
+    "ZW"]
+    default_ix_3 = sem_lang.index("FR")
+    DB_sem = st.selectbox("Select a country:", sem_lang, index=default_ix_3) 
     searche_type = ["allSearches","branded","search-intent","long-tail","categories"]
     devices = ["allDevices","desktop","mobile","tablet"]
     audience = ["international","us","uk","aus"]
@@ -677,13 +684,18 @@ if __name__ == "__main__":
             st.write("\n\n\n\n\n")
             your_brand_domain_input = your_brand_domain.split(',')
             # Fetch and display SEO data
-            try: 
-                rank_,rankings, competition = brand_ranking(keywords,DB_sem.lower(),your_brand_domain_input)
-                st.write("SemRush Keyword's ranking ")
+            
+            rank_,rankings, competition = brand_ranking(keywords,DB_sem.lower(),your_brand_domain_input)
+            st.write("SemRush Keyword's ranking ")
+            if not rankings.is_empty():
                 filtered_rankings = dataframe_explorer(rankings.to_pandas(), case=False)
                 st.dataframe(filtered_rankings,hide_index =True,use_container_width=True)
                 filtered_competition = dataframe_explorer(competition.to_pandas(), case=False)
                 st.dataframe(filtered_competition,hide_index =True,use_container_width=True)
+            else: 
+                filtered_competition = dataframe_explorer(competition.to_pandas(), case=False)
+                st.dataframe(filtered_competition,hide_index =True,use_container_width=True)
+            try:     
                 myAPIToken = 'c186250c0f3ba9502c38caa53efc7edb'
                 params = {
                     "action": "export_ctr",
@@ -706,17 +718,19 @@ if __name__ == "__main__":
                 fig_1 = px.bar(bar_chart, y='Part_des_voix_%', x='brand_domain', text_auto='.2s')
                 st.plotly_chart(fig_1, use_container_width=True)
                 st.write("\n\n\n")
-                excel_file = to_excel([overview, monthly_results,rankings,competition], ["search_volume_overview", "monthly_search_volume","SemRush_Keyword", "SemRush_Ranking"])
-                st.download_button(
-                label="Download Excel file",
-                data=excel_file,
-                file_name="dataframes.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            )
+                
             except: 
                 st.error('The domain you chose is not part of the top 100 domains for any of the keyword(s) ! Please choose another domain or change the keyword(s)', icon="🚨")
+            
+            excel_file = to_excel([overview, monthly_results,rankings,competition], ["search_volume_overview", "monthly_search_volume","SemRush_Keyword", "SemRush_Ranking"])
+            st.download_button(
+            label="Download Excel file",
+            data=excel_file,
+            file_name="dataframes.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )
             # Initialize the GoogleAdsClient with the credentials and developer token
             #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
                         
-      
+
             
