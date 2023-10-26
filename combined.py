@@ -248,8 +248,6 @@ def brand_ranking (keywords,DB,your_brand_domain):
         url = f"https://api.semrush.com/?type=phrase_organic&key={API_KEY_SEM}&phrase={keyword}&export_columns=Kd,Dn,Po,&database={DB}"
         response = requests.get(url)
         # Make sure the request was successful before processing
-        print(keyword)
-        print(response.status_code)
         if response.status_code == 200:
             df = pl.read_csv(io.StringIO(response.text), separator=';', eol_char='\n').with_columns(Key=pl.lit(keyword))
 
