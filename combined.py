@@ -249,6 +249,7 @@ def brand_ranking (keywords,DB,your_brand_domain):
         # Make sure the request was successful before processing
         if response.status_code == 200:
             df = pl.read_csv(io.StringIO(response.text), separator=';', eol_char='\n').with_columns(Key=pl.lit(keyword))
+            print(df)
             dfs_r = dfs_r.vstack(df)
 
             for i in range(len(df)):
