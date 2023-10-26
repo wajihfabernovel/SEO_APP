@@ -243,6 +243,7 @@ def brand_ranking (keywords,DB,your_brand_domain):
     b = pl.DataFrame([])
     rank = pl.DataFrame([])
     API_KEY_SEM = 'e31f38c36540a234e23b614a7ffb4fc4'
+    print(keywords)
     for keyword in keywords:
         url = f"https://api.semrush.com/?type=phrase_organic&key={API_KEY_SEM}&phrase={keyword}&export_columns=Kd,Dn,Po,&database={DB}"
         response = requests.get(url)
@@ -254,6 +255,8 @@ def brand_ranking (keywords,DB,your_brand_domain):
             print("df")
             print(df)
             dfs_r = dfs_r.vstack(df)
+            print("appended)
+            print(dfs_r)
 
             for i in range(len(df)):
                 domain = df['Domain'][i]
