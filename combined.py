@@ -255,7 +255,7 @@ def brand_ranking (keywords,DB,your_brand_domain):
             print("df")
             print(df)
             dfs_r = dfs_r.vstack(df)
-            print("appended)
+            print("appended")
             print(dfs_r)
 
             for i in range(len(df)):
