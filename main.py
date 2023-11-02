@@ -51,7 +51,8 @@ if authentication_status:
         show_pages(
             [
                 Page("./main.py", "Home", "🏠"),
-                Page("./combined.py", "SEO Tool", "📈")
+                Page("./combined.py", "SEO Tool", "📈"),
+                Page("./prediction.py", "Prediction Tool", "📈")
                 # The pages appear in the order you pass them
                 ]
         )
