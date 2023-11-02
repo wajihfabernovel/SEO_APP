@@ -13,3 +13,4 @@ xlsxwriter
 streamlit_extras
 plotly
 xlsx2csv
+statistics
