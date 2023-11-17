@@ -1,0 +1,30 @@
+/* style.css */
+.badge {
+    font-size: 1em;
+    padding: 5px 10px;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 0.35em;
+  }
+  
+  .bg-success {
+    color: #fff;
+    background-color: #28a745; /* Green for high scores */
+  }
+  
+  .bg-warning {
+    color: #212529;
+    background-color: #ffc107; /* Yellow for medium scores */
+  }
+  
+  .bg-danger {
+    color: #fff;
+    background-color: #dc3545; /* Red for low scores */
+  }
+  
+  .bg-secondary {
+    color: #fff;
+    background-color: #6c757d; /* Grey for no score */
+  }
+  

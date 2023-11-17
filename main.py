@@ -49,10 +49,12 @@ if authentication_status:
         st.image("./logo.png", use_column_width=True)  # Using OpenAI's favicon as an example logo
         
         show_pages(
-            [
+                [
                 Page("./main.py", "Home", "🏠"),
                 Page("./combined.py", "SEO Tool", "📈"),
-                Page("./prediction.py", "Prediction Tool", "📈")
+                Page("./prediction.py", "Prediction Tool", "📈"),
+                Page("./lighthouse_2.py", "Audit Tool 1", "📈"),
+                Page("./lighthouse.py", "Audit Tool 2", "📈")
                 # The pages appear in the order you pass them
                 ]
         )
