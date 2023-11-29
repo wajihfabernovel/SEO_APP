@@ -5,11 +5,14 @@ import io
 import pandas as pd
 import streamlit_authenticator as stauth
 from google.ads.googleads.client import GoogleAdsClient
-import datetime 
+from streamlit_extras.dataframe_explorer import dataframe_explorer
 import xlsxwriter
 import plotly.express as px
 from statistics import mean
+import datetime
+from datetime import  timedelta
 pl.Config.set_tbl_hide_column_data_types(True)
+import polars.selectors as cs
 
 
 
@@ -22,7 +25,7 @@ creds = {
     'refresh_token' : "1//03aBH-xmgK1j6CgYIARAAGAMSNwF-L9IrHTMIAOSWIcjj147tjSBl5Z83teClPGIF2S-wcGCrCtO83BlRy5VaT4PoPA06_EVx5hQ",
     'use_proto_plus' : "False"} 
 
-#@st.cache_data
+@st.cache_data
 
 def set_day_to_15(date_str, date_format="%Y-%m-%d"):
     """
@@ -157,7 +160,7 @@ def location_full_list(client, customer_id):
 
 def generate_historical_metrics(api_client, customer_id,keywords,language,location,start_month,start_year,end_month,end_year):
     overview = pl.DataFrame([])
-    final_overview = pl.DataFrame([])
+    #final_overview = pl.DataFrame([])
     monthly_results = pl.DataFrame([])
     final_monthly_results = pl.DataFrame([])
     
@@ -166,7 +169,6 @@ def generate_historical_metrics(api_client, customer_id,keywords,language,locati
     keyword_plan_network = api_client.get_type(
         "KeywordPlanNetworkEnum"
     ).KeywordPlanNetwork.GOOGLE_SEARCH_AND_PARTNERS
-    
     request.customer_id = customer_id
     request.language = search_for_language_constants(api_client, customer_id, language)
     request.geo_target_constants.extend([map_locations_ids_to_resource_names(api_client, customer_id,location)])
@@ -180,14 +182,15 @@ def generate_historical_metrics(api_client, customer_id,keywords,language,locati
     keyword_historical_metrics_response = keyword.generate_keyword_historical_metrics(
         request=request
     )
+
     for result in keyword_historical_metrics_response.results:
         metric = result.keyword_metrics
-        overview = overview.with_columns(search_query=pl.lit(result.text), appro_monthly_search = pl.lit(metric.avg_monthly_searches),competition_level = pl.lit(metric.competition))
+        #overview = overview.with_columns(search_query=pl.lit(result.text), appro_monthly_search = pl.lit(metric.avg_monthly_searches),competition_level = pl.lit(metric.competition))
         # These metrics include those for both the search query and any
         # variants included in the response.
         # If the metric is undefined, print (None) as a placeholder.
         
-        final_overview = final_overview.vstack(overview)
+        #final_overview = final_overview.vstack(overview)
         
         # Approximate number of searches on this query for the past twelve months.
         for month in metric.monthly_search_volumes:
@@ -203,17 +206,17 @@ def generate_historical_metrics(api_client, customer_id,keywords,language,locati
         final_monthly_results_final = final_monthly_results_final.with_columns(
                pl.col("Date").str.to_date("%d %B %Y")
             )
-    return final_overview,final_monthly_results_final.pivot(values ="Appro_monthly", index = "search_query", columns = "Date"),final_monthly_results_final.pivot(values ="Appro_monthly", index = "Date", columns = "search_query")
+    return final_monthly_results_final.pivot(values ="Appro_monthly", index = "search_query", columns = "Date")
     
 
 def brand_ranking (keywords,DB,your_brand_domain): 
     
-    dfs_r = pl.DataFrame([])  # List to store dataframes for each keyword
     your_brand_position = None
     competitors = pl.DataFrame([])
-    t = pl.DataFrame([])
+
     b = pl.DataFrame([])
     rank = pl.DataFrame([])
+    rest_ = []
     API_KEY_SEM = 'e31f38c36540a234e23b614a7ffb4fc4'
     for keyword in keywords:
         url = f"https://api.semrush.com/?type=phrase_organic&key={API_KEY_SEM}&phrase={keyword}&export_columns=Kd,Dn,Po,&database={DB}"
@@ -221,33 +224,32 @@ def brand_ranking (keywords,DB,your_brand_domain):
         # Make sure the request was successful before processing
         if response.status_code == 200:
             df = pl.read_csv(io.StringIO(response.text), separator=';', eol_char='\n').with_columns(Key=pl.lit(keyword))
-            dfs_r = dfs_r.vstack(df)
+            if df.shape[1] == 3:
+                #dfs_r = dfs_r.vstack(df)
+                for i in range(len(df)):
+                    domain = df['Domain'][i]
+                    position = df['Position'][i]
+                    Keys = df['Key'][i]
+                    for j in range (len(your_brand_domain)):
+                        if (domain in your_brand_domain[j]) or (your_brand_domain[j] in domain):
+                            your_brand_position = position
+                            b = b.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(domain),brand_ranking= pl.lit(your_brand_position))
+                            rank = rank.vstack(b)
+                        elif your_brand_domain[j] not in (df["Domain"]):
+                            rest_.append(keyword)
 
-            for i in range(len(df)):
-                domain = df['Domain'][i]
-                position = df['Position'][i]
-                Keys = df['Key'][i]
-                for j in range (len(your_brand_domain)):
-                    if (domain in your_brand_domain[j]) or (your_brand_domain[j] in domain):
-                        your_brand_position = position
-    
-                        b = b.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(domain),brand_ranking= pl.lit(your_brand_position))
-                        rank = rank.vstack(b)
-    
-                    else:
-                        t = t.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(domain), brand_ranking= pl.lit(position)).head(10)
-                        competitors = competitors.vstack(t)            
         else:
-            print(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")
-            
+            st.error(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")
+    final_rest = pl.Series(rest_).unique().to_list()
+    for k in range(len(final_rest)) : 
+        b = b.with_columns(keyword = pl.lit(final_rest[k]),brand_domain = pl.lit(your_brand_domain),brand_ranking= pl.lit(0))
+        rank = rank.vstack(b)  
     if rank.is_empty(): 
-        return rank, rank, competitors.unique(maintain_order=True)
+        return rank
     else : 
-        #print(rank.select("brand_ranking").item())
-        return rank.select("brand_ranking")
+        return rank.pivot(values="brand_ranking",index="keyword",columns="brand_domain")
 
-def ctr(table,web_date_final,web_search,web_val,web_device,web_aud): 
-    dict_ = table.to_dict(as_series=False)
+def ctr(web_date_final,web_search,web_val,web_device,web_aud): 
     myAPIToken = 'c186250c0f3ba9502c38caa53efc7edb'
     params = {
         "action": "export_ctr",
@@ -261,18 +263,42 @@ def ctr(table,web_date_final,web_search,web_val,web_device,web_aud):
 
     # Make sure the request was successful before processing
     data = response.json()
-    web_ranking = pl.DataFrame(data["details"]).with_columns(pl.col("position").cast(pl.Int32).alias("position")).select(["position","web_ctr"])
-    for i in range (0,12):  
-        r = list(dict_.values())[i]
-        #min_ = int(r.split(",")[0][1:])
-        max_ = int(r[0].split(",")[1][1:-1])
-        if max_ == 2: 
-            dict_.update({f"month_{i+1}" : mean((web_ranking.filter(pl.col("position")==max_).select("web_ctr").item(),web_ranking.filter(pl.col("position")==max_-1).select("web_ctr").item()))})
-        else:
-            dict_.update({f"month_{i+1}" : mean((web_ranking.filter(pl.col("position")==max_).select("web_ctr").item(),web_ranking.filter(pl.col("position")==max_-1).select("web_ctr").item(),web_ranking.filter(pl.col("position")==max_-2).select("web_ctr").item()))})
-        #new= pl.DataFrame({"ctr": [mean((web_ranking.filter(pl.col("position")==max_).select("web_ctr").item(),web_ranking.filter(pl.col("position")==max_-1).select("web_ctr").item(),web_ranking.filter(pl.col("position")==max_-2).select("web_ctr").item()))]})
-    ctr = pl.DataFrame(dict_)
-    return ctr
+    web_ranking = pl.DataFrame(data["details"]).with_columns(pl.col("position").cast(pl.Int64).alias("position")).select(["position","web_ctr"])
+    return web_ranking
+
+def rename_columns_with_year_incremented(df):
+    new_column_names = []
+    for col in df.columns[1:]:
+        # Parse the date
+        date = datetime.datetime.strptime(col, '%Y-%m-%d')
+        # Increment the year by 1
+        incremented_date = date.replace(year=date.year + 1)
+        # Format the date to "Month Year" with incremented year
+        new_col_name = incremented_date.strftime('%B %Y')
+        new_column_names.append(new_col_name)
+    return df.rename(dict(zip(df.columns[1:], new_column_names)))
+
+def prod(impressions_df,ctr_df):
+    impressions_df = rename_columns_with_year_incremented(impressions_df)
+    
+    impressions_melted = impressions_df.melt(id_vars=["search_query"], variable_name="Month", value_name="Impr")
+    
+    # Join on Keyword and Month
+    joined_df = impressions_melted.join(ctr_df, left_on=["search_query", "Month"],right_on=["Keyword", "Month"])
+    
+    # Calculate the Product
+    joined_df = joined_df.with_columns(((pl.col("Impr") * pl.col("web_ctr"))/100).alias("Clicks"))
+    result = joined_df.pivot(index='search_query', columns='Month', values='Clicks')
+    return result
+
+def total_sum_volume(df):
+
+    s = pl.Series("search_query", ["Total Volume"])
+
+    # Calculate the sum for each month column
+    total_sums = df.select(pl.exclude('search_query')).sum(axis=0).insert_at_idx(0, s)
+
+    return df.vstack(total_sums)
 
 
 # Function to download the DataFrame as an Excel file
@@ -291,6 +317,8 @@ def to_excel(dfs, sheet_names):
 # Streamlit UI
 
 if __name__ == "__main__":
+    if "load_state" not in st.session_state:
+            st.session_state.load_state = False
     name_to_api_key = {
         "Leclerc": {
             "client_id": "3117864871",
@@ -322,8 +350,8 @@ if __name__ == "__main__":
     st.write("Enter a keyword and select a country to fetch SEO data.")
 
     # Allow user to manually enter keywords
-    key_input = st.title("Enter keywords manually (seperated by a line")
-    col1, col2 = st.columns(2)
+    
+    
 
     client_credentials = "Leclerc"  # Add more countries as needed
     
@@ -335,15 +363,16 @@ if __name__ == "__main__":
     list_language = language_full_list(api_client,client_)
     list_location=location_full_list(api_client,client_)
     # Create two columns for the keyword input fields
+    col1, col2 = st.columns(2)
     col3, col4 = st.columns(2)
 
     # Text area for brand keywords in column 1
     with col1:
-        brand_keywords = st.text_area("Enter Brand Keywords", "Enter each keyword on a new line")
+        brand_keywords = st.text_area("Enter Brand Keywords")
 
     # Text area for non-brand keywords in column 2
     with col2:
-        non_brand_keywords = st.text_area("Enter Non-Brand Keywords", "Enter each keyword on a new line")
+        non_brand_keywords = st.text_area("Enter Non-Brand Keywords")
     
     with col3:
         default_ix = list_location.index("France")
@@ -381,7 +410,6 @@ if __name__ == "__main__":
     st.write("\n\n\n")
     st.title("Coverage Percentage")    
     
-
     # Create two columns for the percentage input fields
     col7, col8 = st.columns(2)
 
@@ -392,6 +420,7 @@ if __name__ == "__main__":
     # Input field for non-brand percentage in column 4
     with col8:
         non_brand_percentage = st.number_input("Enter Percentage for Non-Brand Keywords", min_value=0.0, max_value=1.0, step=0.01, format="%.2f")
+    
     # Allow user to manually enter keywords
     st.write("\n\n\n")
     st.title("SemRush") 
@@ -521,7 +550,7 @@ if __name__ == "__main__":
     audience = ["international","us","uk","aus"]
     value = ["exact","average"]
     st.write("\n\n\n")
-    end_rank = st.number_input('Insert the desired ranking', min_value = 1, max_value = 20, step = 1)
+    
     st.title("Advanced Web Ranking")
     col1, col2,col3 = st.columns(3)
     with col1:
@@ -539,33 +568,114 @@ if __name__ == "__main__":
     with col5:
         web_val = st.selectbox("Select value type:", value)
             
-    if st.button("Submit"):
+    if st.checkbox("Submit"):
         
-        if  key_input:
-            
+        if  brand_keywords or non_brand_keywords:
             
             keywords_brand = brand_keywords.split('\n')
             keywords_non_brand = non_brand_keywords.split('\n')
-            keywords = keywords_brand.append(keywords_non_brand)
+            keywords = keywords_brand + keywords_non_brand
+
             #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
-            overview, monthly_results, graph = generate_historical_metrics(api_client,client_,keywords,lang,DB,start_month,start_year,end_month,end_year)
-            st.write("Google Keyword Planner App Monthly Volume data")
-            st.dataframe(monthly_results,hide_index =True,use_container_width=True)
+            monthly_results= generate_historical_metrics(api_client,client_,keywords,lang,DB,start_month,start_year,end_month,end_year)
+            st.subheader("Search Volume")
+            monthly_results_total = total_sum_volume(monthly_results)
+            st.dataframe(monthly_results_total,hide_index =True,use_container_width=True)
             st.write("\n\n\n\n\n")
             your_brand_domain_input = your_brand_domain.split(',')
             # Fetch and display SEO data
-            rank_ = brand_ranking(keywords,DB_sem.lower(),your_brand_domain_input)
-            st.dataframe(rank_,hide_index =True,use_container_width=True)
-            #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
-            st.write("Ranking Projections")
-            projection_= projection(rank_, end_rank)
-            st.dataframe(projection_,hide_index =True,use_container_width=True)
-            st.write("Ranking CTR")
-            ctr_ = ctr(projection_,web_date_final,web_search,web_val,web_device,web_aud)
-            st.dataframe(ctr_,hide_index =True,use_container_width=True)
+            rankings = brand_ranking(keywords,DB_sem.lower(),your_brand_domain_input)
+            st.subheader("Ranking")
+            if not rankings.is_empty():
+                filtered_rankings = dataframe_explorer(rankings.to_pandas(), case=False)
+                st.dataframe(filtered_rankings,hide_index =True,use_container_width=True)
+            
+            else: 
+                st.error('This is no ranking', icon="🚨")
+            
+            month_columns = monthly_results.columns[1:]  # Assuming month data starts from the 2nd column
+
+            df = monthly_results.with_columns([
+                (pl.when(pl.col("search_query").is_in(keywords_brand)).then(pl.col(month)*brand_percentage).otherwise(pl.col(month)*non_brand_percentage)).alias(month)
+                for i,month in enumerate(month_columns)
+            ])
+            st.subheader("Impressions")
+            df_total = total_sum_volume(df)
+            st.dataframe(df_total,hide_index =True,use_container_width=True)
+            # Generate a list of the next 12 months
+            current_month = datetime.datetime.now()
+            months = [(current_month + timedelta(days=30 * i)).strftime("%B %Y") for i in range(12)]
+            # Initialize session state for rankings if not already done
+            if 'rankings_data' not in st.session_state:
+                st.session_state['rankings_data'] = []
+
+            for keyword in keywords:
+                st.write(f"Projection for {keyword}")
+                with st.expander("Enter Rankings"):
+                    for month in months:
+                        input_key = f"{keyword}_{month}"
+
+                        # Assuming 'value_' is correctly set as per your logic
+                        value_ = rankings.filter(pl.col("keyword") == keyword).select(cs.last()).item()
+
+                        # Use the value from the existing rankings data as the default, if it exists
+                        existing_rank = next((item['Ranking'] for item in st.session_state['rankings_data'] if item['Keyword'] == keyword and item['Month'] == month), value_)
+
+                        # Create the input and update session state on change
+                        if value_ == 0: 
+                            rank = st.number_input(f"Ranking for {month}", key=input_key, max_value=101, min_value=1, value=101, step=1)
+                        else:
+                            rank = st.number_input(f"Ranking for {month}", key=input_key, max_value=value_, min_value=1, value=existing_rank, step=1)
+                        # Update the rankings data in the session state
+                        st.session_state['rankings_data'] = [item for item in st.session_state['rankings_data'] if not (item['Keyword'] == keyword and item['Month'] == month)]
+                        st.session_state['rankings_data'].append({'Keyword': keyword, 'Month': month, 'Ranking': rank})
+
+            # Convert the session state data to DataFrame
+            st.write("Projected Rankings")
+            ranking_data_df = pl.DataFrame(st.session_state['rankings_data'])
+
+            # Pivot the DataFrame
+            pivot_df = ranking_data_df.pivot(index='Keyword', columns='Month', values='Ranking')
+
+            # Display the pivot table
+            st.dataframe(pivot_df,hide_index =True,use_container_width=True)
+            ctr_ = ctr(web_date_final,web_search,web_val,web_device,web_aud)
+            # Join with the CTR DataFrame using a left join
+            joined_df = ranking_data_df.join(ctr_,left_on="Ranking",right_on="position", how="left")
+
+            # Apply 'where' and 'otherwise' to handle rankings above 20
+            joined_df = joined_df.with_columns(pl.col("web_ctr").fill_null(strategy="zero"))
+
+            # Pivot the table back to its original format (if needed)
+            result_df = joined_df.pivot(index="Keyword", columns="Month", values="web_ctr")
+            st.subheader("CTR")
+            st.dataframe(result_df,hide_index =True,use_container_width=True)
+            
+            clics = prod(df,joined_df)
+            st.subheader("Clicks")
+            clics_total = total_sum_volume(clics)
+            st.dataframe(clics_total,hide_index =True,use_container_width=True)
+            total = clics_total.to_pandas().tail(1)
+            # Melt the DataFrame using the numeric columns names
+            clics_chart_bar = total.melt(id_vars='search_query', 
+                               value_vars=[col for col in total.columns if col != 'search_query'],
+                               var_name='Month', value_name='Volume')
+              
+                
+            fig_1 = px.bar(clics_chart_bar, x='Month', y='Volume', title='Total Clicks per Month')
+            st.plotly_chart(fig_1, use_container_width=True)
+            st.write("\n\n\n")
+            
+            clics_chart_line = clics_total.to_pandas().iloc[:-1].melt(id_vars='search_query', 
+                               value_vars=[col for col in total.columns if col != 'search_query'],
+                               var_name='Month', value_name='Volume')
+            print(clics_chart_line)
+            fig_2 = px.line(clics_chart_line, x="Month", y="Volume", color='search_query',title='Total Clicks per Keyword overtime')
+            st.plotly_chart(fig_2, use_container_width=True)
+            st.write("\n\n\n")
             
         st.write("\n\n\n")
-        excel_file = to_excel([overview, monthly_results], ["search_volume_overview", "monthly_search_volume"])
+        excel_file = to_excel([monthly_results], ["search_volume_overview", "monthly_search_volume"])
         st.download_button(
         label="Download Excel file",
         data=excel_file,

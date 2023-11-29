@@ -186,7 +186,9 @@ def generate_historical_metrics(api_client, customer_id,keywords,language,locati
                pl.col("Date").str.to_date("%d %B %Y")
             )
     return final_overview,final_monthly_results_final.pivot(values ="Appro_monthly", index = "search_query", columns = "Date"),final_monthly_results_final.pivot(values ="Appro_monthly", index = "Date", columns = "search_query")
-    
+
+
+
 # Function to download the DataFrame as an Excel file
 
 
@@ -241,7 +243,7 @@ if __name__ == "__main__":
     keywords_input = st.text_area("Or enter keywords manually (seperated by a , )")
     col1, col2 = st.columns(2)
 
-    client_credentials = st.selectbox("Select a Google Ads account:", ["Leclerc", "BLW"])  # Add more countries as needed
+    client_credentials = "Leclerc"  # Add more countries as needed
     
     # Initialize the GoogleAdsClient with the credentials and developer token
     api_client = GoogleAdsClient.load_from_dict(

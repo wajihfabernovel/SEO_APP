@@ -235,7 +235,7 @@ creds = {
     'use_proto_plus' : "False"} 
 
 def brand_ranking (keywords,DB,your_brand_domain): 
-    
+    data = {"Domain": [0], "Position": [0],"Key": [0] }
     dfs_r = pl.DataFrame([])  # List to store dataframes for each keyword
     your_brand_position = None
     competitors = pl.DataFrame([])
@@ -243,35 +243,37 @@ def brand_ranking (keywords,DB,your_brand_domain):
     b = pl.DataFrame([])
     rank = pl.DataFrame([])
     API_KEY_SEM = 'e31f38c36540a234e23b614a7ffb4fc4'
-    print(keywords)
     for keyword in keywords:
         url = f"https://api.semrush.com/?type=phrase_organic&key={API_KEY_SEM}&phrase={keyword}&export_columns=Kd,Dn,Po,&database={DB}"
         response = requests.get(url)
         # Make sure the request was successful before processing
         if response.status_code == 200:
             df = pl.read_csv(io.StringIO(response.text), separator=';', eol_char='\n').with_columns(Key=pl.lit(keyword))
+            if df.shape[1] == 3:
+                dfs_r = dfs_r.vstack(df)
 
-            for i in range(len(df)):
-                domain = df['Domain'][i]
-                position = df['Position'][i]
-                Keys = df['Key'][i]
-                for j in range (len(your_brand_domain)):
-                    if (domain in your_brand_domain[j]) or (your_brand_domain[j] in domain):
-                        your_brand_position = position
-    
-                        b = b.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(domain),brand_ranking= pl.lit(your_brand_position))
-                        rank = rank.vstack(b)
-    
-                    else:
-                        t = t.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(domain), brand_ranking= pl.lit(position)).head(10)
-                        competitors = competitors.vstack(t)            
+                for i in range(len(df)):
+                    domain = df['Domain'][i]
+                    position = df['Position'][i]
+                    Keys = df['Key'][i]
+                    for j in range (len(your_brand_domain)):
+                        if (domain in your_brand_domain[j]) or (your_brand_domain[j] in domain):
+                            your_brand_position = position
+                            b = b.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(domain),brand_ranking= pl.lit(your_brand_position))
+                            rank = rank.vstack(b)
+        
+                        else:
+                            
+                            t = t.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(domain), brand_ranking= pl.lit(position)).head(10)
+                            
+                            competitors = competitors.vstack(t)          
         else:
             print(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")
             
     if rank.is_empty(): 
         return rank, rank, competitors.unique(maintain_order=True)
     else : 
-        return rank,rank.pivot(values="brand_ranking",index="keyword",columns="brand_domain")   , competitors.unique(maintain_order=True)
+        return rank,rank.pivot(values="brand_ranking",index="keyword",columns="brand_domain"), competitors.unique(maintain_order=True)
 
 
 def seo(keywords, DB):
@@ -431,6 +433,7 @@ if __name__ == "__main__":
         today = datetime.datetime.now()
         min = datetime.date(today.year-2,today.month, 1)
         max = datetime.date(today.year,today.month - 1, 30)
+        max_2 = datetime.date(today.year,today.month - 2, 30)
         start_d = st.date_input("Choose the start date",value = max,format="YYYY/MM/DD",max_value =max,min_value =min)
     with col4:
         end_d = st.date_input("Choose the end date",value =max, format="YYYY/MM/DD",max_value =max,min_value =min)
@@ -585,7 +588,7 @@ if __name__ == "__main__":
     st.title("Advanced Web Ranking")
     col1, col2,col3 = st.columns(3)
     with col1:
-        web_date = st.date_input("Choose a month",value = max,format="YYYY-MM-DD",max_value =max,min_value =min)
+        web_date = st.date_input("Choose a month",value = max_2,format="YYYY-MM-DD",max_value =max_2,min_value =min)
         web_date = web_date.strftime("%Y-%m-%d")
         web_date_final = set_day_to_15(web_date)
         #web_date_final = datetime.datetime.strptime(web_date_final, "%Y-%m-%d")
@@ -681,6 +684,7 @@ if __name__ == "__main__":
                 tickformat="%b\n%Y")
             st.plotly_chart(fig, use_container_width=True)
             st.write("\n\n\n\n\n")
+
             your_brand_domain_input = your_brand_domain.split(',')
             # Fetch and display SEO data
             
@@ -705,10 +709,11 @@ if __name__ == "__main__":
                 url = f"https://api.awrcloud.com/v2/get.php"
     
                 response = requests.get(url, params=params)
-    
                 # Make sure the request was successful before processing
                 data = response.json()
+
                 web_ranking = pl.DataFrame(data["details"]).with_columns(pl.col("position").cast(pl.Int32).alias("position"))
+
                 final_table = competition.vstack(rank_).join(web_ranking,left_on="brand_ranking", right_on="position").join(overview,left_on="keyword",right_on="search_query").select(["brand_domain","keyword","brand_ranking","web_ctr","appro_monthly_search"]).sort(["brand_domain","brand_ranking"], descending=[False, False]).with_columns(pl.col("appro_monthly_search").sum().over("brand_domain").alias("sum")).with_columns((((pl.col("appro_monthly_search")*(pl.col("web_ctr")/100))/pl.col("sum"))*100).alias("Part_des_voix_%")).select(["brand_domain","keyword","Part_des_voix_%"]).to_pandas()
                 #st.dataframe(dataframe_explorer(final_table, case=False),hide_index =True,use_container_width=True) 
                 bar_chart = final_table.groupby(['brand_domain'])["Part_des_voix_%"].sum().reset_index().sort_values(by="Part_des_voix_%", ascending=False).head(10)
