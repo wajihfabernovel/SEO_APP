@@ -212,9 +212,9 @@ def generate_historical_metrics(api_client, customer_id,keywords,language,locati
 def brand_ranking (keywords,DB,your_brand_domain): 
     
     your_brand_position = None
-    competitors = pl.DataFrame([])
 
     b = pl.DataFrame([])
+    non_rank = pl.DataFrame([])
     rank = pl.DataFrame([])
     rest_ = []
     API_KEY_SEM = 'e31f38c36540a234e23b614a7ffb4fc4'
@@ -233,22 +233,44 @@ def brand_ranking (keywords,DB,your_brand_domain):
                     for j in range (len(your_brand_domain)):
                         if (domain in your_brand_domain[j]) or (your_brand_domain[j] in domain):
                             your_brand_position = position
+
                             b = b.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(domain),brand_ranking= pl.lit(your_brand_position))
                             rank = rank.vstack(b)
                         elif your_brand_domain[j] not in (df["Domain"]):
                             rest_.append(keyword)
-
+            else: 
+                print(keyword)
+                non_rank = non_rank.vstack(non_rank.with_columns(keyword = pl.lit(keyword),brand_domain = pl.lit(your_brand_domain),brand_ranking= pl.lit(0)))
         else:
             st.error(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")
     final_rest = pl.Series(rest_).unique().to_list()
     for k in range(len(final_rest)) : 
-        b = b.with_columns(keyword = pl.lit(final_rest[k]),brand_domain = pl.lit(your_brand_domain),brand_ranking= pl.lit(0))
-        rank = rank.vstack(b)  
-    if rank.is_empty(): 
-        return rank
-    else : 
-        new_rank = rank.group_by(["keyword","brand_domain"]).agg(pl.col("brand_ranking").min())
-        return new_rank.pivot(values="brand_ranking",index="keyword",columns="brand_domain")
+        b = b.vstack(b.with_columns(keyword = pl.lit(final_rest[k]),brand_domain = pl.lit(your_brand_domain),brand_ranking= pl.lit(0)))
+         
+    if (not non_rank.is_empty()) and (not rank.is_empty()) and (not b.is_empty()) :
+      
+        rank = rank.vstack(non_rank).vtack(b)  
+    elif rank.is_empty() and (not non_rank.is_empty()) and (not b.is_empty()): 
+ 
+        rank = non_rank.vstack(non_rank).vstack(b)
+    elif non_rank.is_empty() and (not rank.is_empty()) and (not b.is_empty()): 
+
+        rank = rank.vstack(b)
+    elif b.is_empty() and (not rank.is_empty()) and (not non_rank.is_empty()):
+
+        rank = rank.vstack(non_rank)
+    elif (not rank.is_empty()) and non_rank.is_empty() and b.is_empty():
+
+        rank = rank
+    elif rank.is_empty() and (not non_rank.is_empty()) and b.is_empty():
+
+        rank = non_rank
+    elif rank.is_empty() and non_rank.is_empty() and (not b.is_empty()):
+
+        rank = b
+
+    new_rank = rank.group_by(["keyword","brand_domain"]).agg(pl.col("brand_ranking").min())
+    return new_rank.pivot(values="brand_ranking",index="keyword",columns="brand_domain")
 
 def ctr(web_date_final,web_search,web_val,web_device,web_aud): 
     myAPIToken = 'c186250c0f3ba9502c38caa53efc7edb'
@@ -575,7 +597,15 @@ if __name__ == "__main__":
             
             keywords_brand = brand_keywords.split('\n')
             keywords_non_brand = non_brand_keywords.split('\n')
-            keywords = keywords_brand + keywords_non_brand
+            if (keywords_brand ==[""]) and (keywords_non_brand ==[""]):
+                st.error('You need to submit at least one keyword', icon="🚨")
+                pass 
+            elif keywords_brand ==[""] :
+                keywords = keywords_non_brand
+            elif keywords_non_brand ==[""]:
+                keywords = keywords_brand
+            else:
+                keywords = keywords_brand + keywords_non_brand
 
             #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
             monthly_results= generate_historical_metrics(api_client,client_,keywords,lang,DB,start_month,start_year,end_month,end_year)
@@ -625,8 +655,10 @@ if __name__ == "__main__":
                         # Create the input and update session state on change
                         if value_ == 0: 
                             rank = st.number_input(f"Ranking for {month}", key=input_key, max_value=101, min_value=1, value=101, step=1)
-                        else:
-                            rank = st.number_input(f"Ranking for {month}", key=input_key, max_value=value_, min_value=1, value=existing_rank, step=1)
+                        elif value_ == 1:
+                            rank = st.number_input(f"Ranking for {month}", key=input_key, max_value=value_, min_value=1, value=1, step=1)
+                        else : 
+                            rank = st.number_input(f"Ranking for {month}", key=input_key, max_value=value_, min_value=1, value=value_, step=1)
                         # Update the rankings data in the session state
                         st.session_state['rankings_data'] = [item for item in st.session_state['rankings_data'] if not (item['Keyword'] == keyword and item['Month'] == month)]
                         st.session_state['rankings_data'].append({'Keyword': keyword, 'Month': month, 'Ranking': rank})
@@ -657,12 +689,14 @@ if __name__ == "__main__":
             clics_total = total_sum_volume(clics)
             st.dataframe(clics_total,hide_index =True,use_container_width=True)
             total = clics_total.to_pandas().tail(1)
+            st.write("\n\n\n")
+            
             # Melt the DataFrame using the numeric columns names
             clics_chart_bar = total.melt(id_vars='search_query', 
                                value_vars=[col for col in total.columns if col != 'search_query'],
                                var_name='Month', value_name='Volume')
-              
-                
+            st.metric(label="Total Clicks", value=clics_chart_bar.sum()["Volume"])  
+      
             fig_1 = px.bar(clics_chart_bar, x='Month', y='Volume', title='Total Clicks per Month')
             st.plotly_chart(fig_1, use_container_width=True)
             st.write("\n\n\n")
@@ -670,17 +704,16 @@ if __name__ == "__main__":
             clics_chart_line = clics_total.to_pandas().iloc[:-1].melt(id_vars='search_query', 
                                value_vars=[col for col in total.columns if col != 'search_query'],
                                var_name='Month', value_name='Volume')
-            print(clics_chart_line)
             fig_2 = px.line(clics_chart_line, x="Month", y="Volume", color='search_query',title='Total Clicks per Keyword overtime')
             st.plotly_chart(fig_2, use_container_width=True)
             st.write("\n\n\n")
             
         st.write("\n\n\n")
-        excel_file = to_excel([monthly_results], ["search_volume_overview", "monthly_search_volume"])
+        excel_file = to_excel([monthly_results_total,rankings,df_total,pivot_df,result_df,clics_total,pl.from_pandas(clics_chart_bar),pl.from_pandas(clics_chart_line)], ["Volume", "Ranking","Impressions","Projected Ranking","CTR","Clicks","Bar chart data","Line chart data"])
         st.download_button(
         label="Download Excel file",
         data=excel_file,
-        file_name="dataframes.xlsx",
+        file_name="SEO_Projection.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
         
