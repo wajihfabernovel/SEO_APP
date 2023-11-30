@@ -247,7 +247,8 @@ def brand_ranking (keywords,DB,your_brand_domain):
     if rank.is_empty(): 
         return rank
     else : 
-        return rank.pivot(values="brand_ranking",index="keyword",columns="brand_domain")
+        new_rank = rank.group_by(["keyword","brand_domain"]).agg(pl.col("brand_ranking").min())
+        return new_rank.pivot(values="brand_ranking",index="keyword",columns="brand_domain")
 
 def ctr(web_date_final,web_search,web_val,web_device,web_aud): 
     myAPIToken = 'c186250c0f3ba9502c38caa53efc7edb'
@@ -578,7 +579,7 @@ if __name__ == "__main__":
 
             #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
             monthly_results= generate_historical_metrics(api_client,client_,keywords,lang,DB,start_month,start_year,end_month,end_year)
-            st.subheader("Search Volume")
+            st.subheader("Search Volume for the last 12 months")
             monthly_results_total = total_sum_volume(monthly_results)
             st.dataframe(monthly_results_total,hide_index =True,use_container_width=True)
             st.write("\n\n\n\n\n")
@@ -599,7 +600,7 @@ if __name__ == "__main__":
                 (pl.when(pl.col("search_query").is_in(keywords_brand)).then(pl.col(month)*brand_percentage).otherwise(pl.col(month)*non_brand_percentage)).alias(month)
                 for i,month in enumerate(month_columns)
             ])
-            st.subheader("Impressions")
+            st.subheader("Impressions for the last 12 months")
             df_total = total_sum_volume(df)
             st.dataframe(df_total,hide_index =True,use_container_width=True)
             # Generate a list of the next 12 months
