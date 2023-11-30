@@ -249,7 +249,7 @@ def brand_ranking (keywords,DB,your_brand_domain):
          
     if (not non_rank.is_empty()) and (not rank.is_empty()) and (not b.is_empty()) :
       
-        rank = rank.vstack(non_rank).vtack(b)  
+        rank = rank.vstack(non_rank).vstack(b)  
     elif rank.is_empty() and (not non_rank.is_empty()) and (not b.is_empty()): 
  
         rank = non_rank.vstack(non_rank).vstack(b)
