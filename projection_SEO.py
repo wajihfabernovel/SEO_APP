@@ -409,6 +409,7 @@ if __name__ == "__main__":
         today = datetime.datetime.now()
         min_ = datetime.date(today.year-2,today.month, 1)
         max_ = datetime.date(today.year,today.month - 1, 30)
+        max_2 = datetime.date(today.year,today.month - 2, 30)
         max_start = datetime.date(today.year-1,today.month, 30)
         start_d = st.date_input("Choose the start date",value = max_start,format="YYYY/MM/DD",max_value =max_,min_value =min_)
     with col6:
@@ -577,7 +578,7 @@ if __name__ == "__main__":
     st.title("Advanced Web Ranking")
     col1, col2,col3 = st.columns(3)
     with col1:
-        web_date = st.date_input("Choose a month",value = max_,format="YYYY-MM-DD",max_value =max_,min_value =min_)
+        web_date = st.date_input("Choose a month",value = max_2,format="YYYY-MM-DD",max_value =max_2,min_value =min_)
         web_date = web_date.strftime("%Y-%m-%d")
         web_date_final = set_day_to_15(web_date)
         #web_date_final = datetime.datetime.strptime(web_date_final, "%Y-%m-%d")
@@ -635,16 +636,17 @@ if __name__ == "__main__":
             st.dataframe(df_total,hide_index =True,use_container_width=True)
             # Generate a list of the next 12 months
             current_month = datetime.datetime.now()
-            months = [(current_month + timedelta(days=30 * i)).strftime("%B %Y") for i in range(12)]
+            months = [(current_month + timedelta(days=30 * (i+1))).strftime("%B %Y") for i in range(12)]
             # Initialize session state for rankings if not already done
             if 'rankings_data' not in st.session_state:
                 st.session_state['rankings_data'] = []
-
+            print(months)
             for keyword in keywords:
                 st.write(f"Projection for {keyword}")
                 with st.expander("Enter Rankings"):
                     for month in months:
                         input_key = f"{keyword}_{month}"
+                        print(input_key)
 
                         # Assuming 'value_' is correctly set as per your logic
                         value_ = rankings.filter(pl.col("keyword") == keyword).select(cs.last()).item()
