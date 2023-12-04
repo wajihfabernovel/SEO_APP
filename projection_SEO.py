@@ -6,6 +6,7 @@ import pandas as pd
 import streamlit_authenticator as stauth
 from google.ads.googleads.client import GoogleAdsClient
 from streamlit_extras.dataframe_explorer import dataframe_explorer
+from dateutil.relativedelta import relativedelta
 import xlsxwriter
 import plotly.express as px
 from statistics import mean
@@ -636,11 +637,10 @@ if __name__ == "__main__":
             st.dataframe(df_total,hide_index =True,use_container_width=True)
             # Generate a list of the next 12 months
             current_month = datetime.datetime.now()
-            months = [(current_month + timedelta(days=30 * (i+1))).strftime("%B %Y") for i in range(12)]
+            months = [(current_month + relativedelta(months=i+1)).strftime("%B %Y") for i in range(12)]
             # Initialize session state for rankings if not already done
             if 'rankings_data' not in st.session_state:
                 st.session_state['rankings_data'] = []
-            print(months)
             for keyword in keywords:
                 st.write(f"Projection for {keyword}")
                 with st.expander("Enter Rankings"):
