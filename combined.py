@@ -16,37 +16,28 @@ from pandas.api.types import (
     is_numeric_dtype,
     is_object_dtype,
 )
-
-
 API_KEY = 'e31f38c36540a234e23b614a7ffb4fc4'
-
 creds = {
     'developer_token' : "q2Om6GmAhWjE2z_p8Da_Fw",
     'client_id' : "899223584116-m7n92thr3co9gr0otu7g64o85r6i46ko.apps.googleusercontent.com",
     'client_secret' : "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",
     'refresh_token' : "1//03aBH-xmgK1j6CgYIARAAGAMSNwF-L9IrHTMIAOSWIcjj147tjSBl5Z83teClPGIF2S-wcGCrCtO83BlRy5VaT4PoPA06_EVx5hQ",
     'use_proto_plus' : "False"} 
-
 #@st.cache_data
-
 def set_day_to_15(date_str, date_format="%Y-%m-%d"):
     """
     Set the day in the given date string to 15.
-
     Parameters:
     - date_str (str): The input date string.
     - date_format (str): The format of the input date string. Default is "%Y-%m-%d" (e.g., "2023-10-06").
-
     Returns:
     - str: The modified date string with the day set to 15.
     """
     date_obj = datetime.datetime.strptime(date_str, date_format)
     modified_date_obj = date_obj.replace(day=15)
     return modified_date_obj.strftime(date_format)
-
 def search_for_language_constants(client, customer_id, language_name):
     """Searches for language constants where the name includes a given string.
-
     Args:
         client: An initialized Google Ads API client.
         customer_id: The Google Ads customer ID.
@@ -54,7 +45,6 @@ def search_for_language_constants(client, customer_id, language_name):
     """
     # Get the GoogleAdsService client.
     googleads_service = client.get_service("GoogleAdsService")
-
     # Create a query that retrieves the language constants where the name
     # includes a given string.
     query = f"""
@@ -62,7 +52,6 @@ def search_for_language_constants(client, customer_id, language_name):
         language_constant.resource_name
         FROM language_constant
         WHERE language_constant.name LIKE '%{language_name}%'"""
-
     # Issue a search request and process the stream response to print the
     # requested field values for the carrier constant in each row.
     stream = googleads_service.search_stream(
@@ -70,10 +59,8 @@ def search_for_language_constants(client, customer_id, language_name):
     )
     batches = [batch.results for batch in stream]
     return batches[0][0].language_constant.resource_name
-
 def language_full_list(client, customer_id):
     """Searches for language constants where the name includes a given string.
-
     Args:
         client: An initialized Google Ads API client.
         customer_id: The Google Ads customer ID.
@@ -81,14 +68,12 @@ def language_full_list(client, customer_id):
     """
     # Get the GoogleAdsService client.
     googleads_service = client.get_service("GoogleAdsService")
-
     # Create a query that retrieves the language constants where the name
     # includes a given string.
     query = f"""
         SELECT
         language_constant.name
         FROM language_constant"""
-
     # Issue a search request and process the stream response to print the
     # requested field values for the carrier constant in each row.
     stream = googleads_service.search_stream(
@@ -100,20 +85,16 @@ def language_full_list(client, customer_id):
             language_name = row.language_constant.name
             t.append(language_name)
     return t
-
 def map_locations_ids_to_resource_names(api_client, customer_id, location_name):
     """Converts a list of location IDs to resource names.
-
     Args:
         client: an initialized GoogleAdsClient instance.
         location_ids: a list of location ID strings.
-
     Returns:
         a list of resource name strings using the given location IDs.
     """
     # Get the GoogleAdsService client.
     googleads_service = api_client.get_service("GoogleAdsService")
-
     # Create a query that retrieves the language constants where the name
     # includes a given string.
     query = f"""
@@ -121,7 +102,6 @@ def map_locations_ids_to_resource_names(api_client, customer_id, location_name):
         geo_target_constant.resource_name
         FROM geo_target_constant
         WHERE geo_target_constant.name LIKE '%{location_name}%'"""
-
     # Issue a search request and process the stream response to print the
     # requested field values for the carrier constant in each row.
     stream = googleads_service.search_stream(
@@ -129,10 +109,8 @@ def map_locations_ids_to_resource_names(api_client, customer_id, location_name):
     )
     batches = [batch.results for batch in stream]
     return batches[0][0].geo_target_constant.resource_name
-
 def location_full_list(client, customer_id):
     """Searches for language constants where the name includes a given string.
-
     Args:
         client: An initialized Google Ads API client.
         customer_id: The Google Ads customer ID.
@@ -140,14 +118,12 @@ def location_full_list(client, customer_id):
     """
     # Get the GoogleAdsService client.
     googleads_service = client.get_service("GoogleAdsService")
-
     # Create a query that retrieves the language constants where the name
     # includes a given string.
     query = f"""
         SELECT
         geo_target_constant.name
         FROM geo_target_constant"""
-
     # Issue a search request and process the stream response to print the
     # requested field values for the carrier constant in each row.
     stream = googleads_service.search_stream(
@@ -159,7 +135,6 @@ def location_full_list(client, customer_id):
             location_name = row.geo_target_constant.name
             t.append(location_name)
     return t
-
 def generate_historical_metrics(api_client, customer_id,keywords,language,location,start_month,start_year,end_month,end_year):
     overview = pl.DataFrame([])
     final_overview = pl.DataFrame([])
@@ -175,7 +150,6 @@ def generate_historical_metrics(api_client, customer_id,keywords,language,locati
     request.customer_id = customer_id
     request.language = search_for_language_constants(api_client, customer_id, language)
     request.geo_target_constants.extend([map_locations_ids_to_resource_names(api_client, customer_id,location)])
-
     request.keyword_plan_network = keyword_plan_network
     request.keywords.extend(keywords)
     request.historical_metrics_options.year_month_range.start.year = start_year
@@ -211,8 +185,6 @@ def generate_historical_metrics(api_client, customer_id,keywords,language,locati
     return final_overview,final_monthly_results_final.pivot(values ="Appro_monthly", index = "search_query", columns = "Date"),final_monthly_results_final.pivot(values ="Appro_monthly", index = "Date", columns = "search_query")
     
 # Function to download the DataFrame as an Excel file
-
-
 def to_excel(dfs, sheet_names):
     """
     Convert multiple dataframes to one Excel file with multiple sheets
@@ -223,17 +195,14 @@ def to_excel(dfs, sheet_names):
             df.write_excel(writer, worksheet=sheet_name,has_header=True,autofit=True)
     output.seek(0)
     return output
-
 ########################################@
 API_KEY_SEM = 'e31f38c36540a234e23b614a7ffb4fc4'
-
 creds = {
     'developer_token' : "q2Om6GmAhWjE2z_p8Da_Fw",
     'client_id' : "899223584116-m7n92thr3co9gr0otu7g64o85r6i46ko.apps.googleusercontent.com",
     'client_secret' : "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",
     'refresh_token' : "1//03aBH-xmgK1j6CgYIARAAGAMSNwF-L9IrHTMIAOSWIcjj147tjSBl5Z83teClPGIF2S-wcGCrCtO83BlRy5VaT4PoPA06_EVx5hQ",
     'use_proto_plus' : "False"} 
-
 def brand_ranking (keywords,DB,your_brand_domain): 
     data = {"Domain": [0], "Position": [0],"Key": [0] }
     dfs_r = pl.DataFrame([])  # List to store dataframes for each keyword
@@ -252,7 +221,6 @@ def brand_ranking (keywords,DB,your_brand_domain):
             df = pl.read_csv(io.StringIO(response.text), separator=';', eol_char='\n').with_columns(Key=pl.lit(keyword))
             if df.shape[1] == 3:
                 dfs_r = dfs_r.vstack(df)
-
                 for i in range(len(df)):
                     domain = df['Domain'][i]
                     position = df['Position'][i]
@@ -267,28 +235,21 @@ def brand_ranking (keywords,DB,your_brand_domain):
                             
                             t = t.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(domain), brand_ranking= pl.lit(position))
                             competitors = competitors.vstack(t)  
-        print(competitors.head(10))
-        competitors.clear()
-        
+            print(competitors.head(10)
+            competitors.clear()
         else:
-            print(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")
-    
+            print(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")       
     if rank.is_empty(): 
         return rank, rank, competitors.unique(maintain_order=True)
     else : 
         rank = rank.group_by(["keyword","brand_domain"]).agg(pl.col("brand_ranking").min())
         return rank,rank.pivot(values="brand_ranking",index="keyword",columns="brand_domain"), competitors.unique(maintain_order=True)
-
-
 def seo(keywords, DB):
-
     
     dfs = pl.DataFrame([])  # List to store dataframes for each keyword
-
     for keyword in keywords:
         url = f"https://api.semrush.com/?type=phrase_all&key={API_KEY_SEM}&phrase={keyword}&export_columns=Dt,Db,Ph,Nq,Cp,Co,Nr&database={DB}"
         response = requests.get(url)
-
         # Make sure the request was successful before processing
         if response.status_code == 200:
             df = pl.read_csv(io.StringIO(response.text), separator=';', eol_char='\n')
@@ -297,38 +258,28 @@ def seo(keywords, DB):
             
         else:
             print(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")
-
     return dfs
-
 def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     """
     Adds a UI on top of a dataframe to let viewers filter columns
-
     Args:
         df (pd.DataFrame): Original dataframe
-
     Returns:
         pd.DataFrame: Filtered dataframe
     """
     # modify = st.checkbox("Add filters")
-
     # if not modify:
     #     return df
-
     df = df.copy()
-
     for col in df.columns:
         if is_object_dtype(df[col]):
             try:
                 df[col] = pd.to_datetime(df[col])
             except Exception:
                 pass
-
         if is_datetime64_any_dtype(df[col]):
             df[col] = df[col].dt.tz_localize(None)
-
     modification_container = st.container()
-
     with modification_container:
         to_filter_columns = st.multiselect("Filter dataframe on", df.columns)
         for column in to_filter_columns:
@@ -372,9 +323,7 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
                 if user_text_input:
                     df = df[df[column].astype(str).str.contains(user_text_input)]
     return df
-
 # Streamlit UI
-
 if __name__ == "__main__":
     if "load_state" not in st.session_state:
             st.session_state.load_state = False
@@ -399,7 +348,6 @@ if __name__ == "__main__":
     }
     </style>
     """, unsafe_allow_html=True)
-
     # Display the logo
     st.image("./logo.png", use_column_width=True)  # Using OpenAI's favicon as an example logo
     
@@ -407,14 +355,12 @@ if __name__ == "__main__":
     st.write("\n\n\n")
     
     st.write("Enter a keyword and select a country to fetch SEO data.")
-
     uploaded_file = st.file_uploader("Upload an Excel file containing keywords", type=["xlsx"])
         
     # Allow user to manually enter keywords
     keywords_input = st.text_area("Or enter keywords manually (seperated by a line)")
     st.title("Google Ads")
     col1, col2 = st.columns(2)
-
     client_credentials = "Leclerc"  # Add more countries as needed
     
     
@@ -654,9 +600,7 @@ if __name__ == "__main__":
             }
             
             url = f"https://api.awrcloud.com/v2/get.php"
-
             response = requests.get(url, params=params)
-
             # Make sure the request was successful before processing
             
             data = response.json()
@@ -672,7 +616,6 @@ if __name__ == "__main__":
             
             #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
             overview, monthly_results, graph = generate_historical_metrics(api_client,client_,keywords,lang,DB,start_month,start_year,end_month,end_year)
-
             st.write("Google Keyword Planner Volume data")
             st.dataframe(overview,hide_index =True,use_container_width=True)
             st.write("Google Keyword Palnner App Monthly Volume data")
@@ -688,7 +631,6 @@ if __name__ == "__main__":
                 tickformat="%b\n%Y")
             st.plotly_chart(fig, use_container_width=True)
             st.write("\n\n\n\n\n")
-
             your_brand_domain_input = your_brand_domain.split(',')
             # Fetch and display SEO data
             
@@ -715,9 +657,7 @@ if __name__ == "__main__":
                 response = requests.get(url, params=params)
                 # Make sure the request was successful before processing
                 data = response.json()
-
                 web_ranking = pl.DataFrame(data["details"]).with_columns(pl.col("position").cast(pl.Int32).alias("position"))
-
                 final_table = competition.vstack(rank_).join(web_ranking,left_on="brand_ranking", right_on="position").join(overview,left_on="keyword",right_on="search_query").select(["brand_domain","keyword","brand_ranking","web_ctr","appro_monthly_search"]).sort(["brand_domain","brand_ranking"], descending=[False, False]).with_columns(pl.col("appro_monthly_search").sum().over("brand_domain").alias("sum")).with_columns((((pl.col("appro_monthly_search")*(pl.col("web_ctr")/100))/pl.col("sum"))*100).alias("Part_des_voix_%")).select(["brand_domain","keyword","Part_des_voix_%"]).to_pandas()
                 #st.dataframe(dataframe_explorer(final_table, case=False),hide_index =True,use_container_width=True) 
                 bar_chart = final_table.groupby(['brand_domain'])["Part_des_voix_%"].sum().reset_index().sort_values(by="Part_des_voix_%", ascending=False).head(10)
@@ -739,6 +679,3 @@ if __name__ == "__main__":
             )
             # Initialize the GoogleAdsClient with the credentials and developer token
             #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
-                        
-
-            
