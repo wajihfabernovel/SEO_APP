@@ -235,8 +235,8 @@ def brand_ranking (keywords,DB,your_brand_domain):
                             
                             t = t.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(domain), brand_ranking= pl.lit(position))
                             competitors = competitors.vstack(t)  
-                print(competitors.head(10)
-                competitors.clear()
+                print(competitors.head(10))
+                competitors = []
         else:
             print(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")       
     if rank.is_empty(): 
