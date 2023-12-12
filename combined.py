@@ -273,6 +273,7 @@ def brand_ranking (keywords,DB,your_brand_domain):
     if rank.is_empty(): 
         return rank, rank, competitors.unique(maintain_order=True)
     else : 
+        rank = rank.group_by(["keyword","brand_domain"]).agg(pl.col("brand_ranking").min())
         return rank,rank.pivot(values="brand_ranking",index="keyword",columns="brand_domain"), competitors.unique(maintain_order=True)
 
 
