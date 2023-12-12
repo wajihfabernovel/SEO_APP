@@ -182,6 +182,7 @@ def generate_historical_metrics(api_client, customer_id,keywords,language,locati
         final_monthly_results_final = final_monthly_results_final.with_columns(
                pl.col("Date").str.to_date("%d %B %Y")
             )
+        final_monthly_results_final = final_monthly_results_final.group_by(["search_query","Date"]).agg(pl.col("Appro_monthly").max())
     return final_overview,final_monthly_results_final.pivot(values ="Appro_monthly", index = "search_query", columns = "Date"),final_monthly_results_final.pivot(values ="Appro_monthly", index = "Date", columns = "search_query")
     
 # Function to download the DataFrame as an Excel file
