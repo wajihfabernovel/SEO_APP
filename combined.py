@@ -640,7 +640,7 @@ if __name__ == "__main__":
             st.write("SemRush Keyword's ranking ")
             filtered_rankings = dataframe_explorer(rankings.to_pandas(), case=False)
             st.dataframe(filtered_rankings,hide_index =True,use_container_width=True)
-            filtered_competition = dataframe_explorer(competition.to_pandas().head(10), case=False)
+            filtered_competition = dataframe_explorer(competition.to_pandas(), case=False)
             st.dataframe(filtered_competition,hide_index =True,use_container_width=True)            
         
             myAPIToken = 'c186250c0f3ba9502c38caa53efc7edb'
