@@ -272,7 +272,7 @@ def brand_ranking (keywords,DB,your_brand_domain):
         
         else:
             print(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")
-        print(final_compet)        
+    
     if rank.is_empty(): 
         return rank, rank, competitors.unique(maintain_order=True)
     else : 
