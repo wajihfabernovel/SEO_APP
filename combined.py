@@ -235,15 +235,16 @@ def brand_ranking (keywords,DB,your_brand_domain):
                             
                             t = t.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(domain), brand_ranking= pl.lit(position))
                             competitors = competitors.vstack(t)  
-                print(competitors.head(10))
+                final_compet = final_compet.vstack(competitors.head(10))
                 competitors = competitors.clear()
         else:
             print(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")       
     if rank.is_empty(): 
-        return rank, rank, competitors.unique(maintain_order=True)
+        return rank, rank, final_compet.unique(maintain_order=True)
     else : 
         rank = rank.group_by(["keyword","brand_domain"]).agg(pl.col("brand_ranking").min())
-        return rank,rank.pivot(values="brand_ranking",index="keyword",columns="brand_domain"), competitors.unique(maintain_order=True)
+        print(final_compet.unique(maintain_order=True))
+        return rank,rank.pivot(values="brand_ranking",index="keyword",columns="brand_domain"), final_compet.unique(maintain_order=True)
 def seo(keywords, DB):
     
     dfs = pl.DataFrame([])  # List to store dataframes for each keyword
