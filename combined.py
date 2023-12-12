@@ -239,6 +239,7 @@ def brand_ranking (keywords,DB,your_brand_domain):
     dfs_r = pl.DataFrame([])  # List to store dataframes for each keyword
     your_brand_position = None
     competitors = pl.DataFrame([])
+    final_compet = pl.DataFrame([])
     t = pl.DataFrame([])
     b = pl.DataFrame([])
     rank = pl.DataFrame([])
@@ -264,12 +265,13 @@ def brand_ranking (keywords,DB,your_brand_domain):
         
                         else:
                             
-                            t = t.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(domain), brand_ranking= pl.lit(position)).head(10)
-                            print(t)
-                            competitors = competitors.vstack(t)          
+                            t = t.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(domain), brand_ranking= pl.lit(position))
+                            competitors = competitors.vstack(t)  
+            final_compet = final_compet(competitors.head(10))
+        
         else:
             print(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")
-            
+    print(final_compet)        
     if rank.is_empty(): 
         return rank, rank, competitors.unique(maintain_order=True)
     else : 
