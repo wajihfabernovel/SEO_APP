@@ -269,6 +269,7 @@ def brand_ranking (keywords,DB,your_brand_domain):
     elif rank.is_empty() and non_rank.is_empty() and (not b.is_empty()):
 
         rank = b
+    print("here")
     print(rank)
     new_rank = rank.group_by(["keyword","brand_domain"]).agg(pl.col("brand_ranking").min())
     return new_rank.pivot(values="brand_ranking",index="keyword",columns="brand_domain")
