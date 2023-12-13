@@ -223,9 +223,6 @@ def brand_ranking (keywords,DB,your_brand_domain):
         url = f"https://api.semrush.com/?type=phrase_organic&key={API_KEY_SEM}&phrase={keyword}&export_columns=Kd,Dn,Po,&database={DB}"
         response = requests.get(url)
         # Make sure the request was successful before processing
-        print("--------------------")
-        print(response.status_code)
-        print("--------------------")
         if response.status_code == 200:
             df = pl.read_csv(io.StringIO(response.text), separator=';', eol_char='\n').with_columns(Key=pl.lit(keyword))
             if df.shape[1] == 3:
@@ -246,7 +243,7 @@ def brand_ranking (keywords,DB,your_brand_domain):
                 print(keyword)
                 non_rank = non_rank.vstack(non_rank.with_columns(keyword = pl.lit(keyword),brand_domain = pl.lit(your_brand_domain),brand_ranking= pl.lit(0)))
         else:
-            st.error(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")
+            st.error(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}. Check your API")
     final_rest = pl.Series(rest_).unique().to_list()
     for k in range(len(final_rest)) : 
         b = b.vstack(b.with_columns(keyword = pl.lit(final_rest[k]),brand_domain = pl.lit(your_brand_domain),brand_ranking= pl.lit(0)))
