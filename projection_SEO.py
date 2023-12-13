@@ -270,9 +270,10 @@ def brand_ranking (keywords,DB,your_brand_domain):
 
         rank = b
     
-    print("here")
+    print("---------------------------------------------------")
     print(rank)
-    #new_rank = rank.group_by(["keyword","brand_domain"]).agg(pl.col("brand_ranking").min())
+    print("---------------------------------------------------")
+    new_rank = rank.group_by(["keyword","brand_domain"]).agg(pl.col("brand_ranking").min())
     return new_rank.pivot(values="brand_ranking",index="keyword",columns="brand_domain")
 
 def ctr(web_date_final,web_search,web_val,web_device,web_aud): 
