@@ -383,6 +383,7 @@ if __name__ == "__main__":
     api_client = GoogleAdsClient.load_from_dict(
                 name_to_api_key[client_credentials]["credentials"]
             )
+    print(api_client)
     client_ = name_to_api_key[client_credentials]["client_id"]
     list_language = language_full_list(api_client,client_)
     list_location=location_full_list(api_client,client_)
