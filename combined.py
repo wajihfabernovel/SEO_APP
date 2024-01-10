@@ -384,8 +384,8 @@ if __name__ == "__main__":
     with col3:
         today = datetime.datetime.now()
         min = datetime.date(today.year-2,today.month, 1)
-        max = datetime.date(today.year,today.month - 1, 30)
-        max_2 = datetime.date(today.year,today.month - 2, 30)
+        max = datetime.date(today.year-1,12, 30)
+        max_2 = datetime.date(today.year-1,11, 30)
         start_d = st.date_input("Choose the start date",value = max,format="YYYY/MM/DD",max_value =max,min_value =min)
     with col4:
         end_d = st.date_input("Choose the end date",value =max, format="YYYY/MM/DD",max_value =max,min_value =min)
