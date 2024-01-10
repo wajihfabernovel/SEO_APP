@@ -700,7 +700,7 @@ if __name__ == "__main__":
             clics_chart_bar = total.melt(id_vars='search_query', 
                                value_vars=[col for col in total.columns if col != 'search_query'],
                                var_name='Month', value_name='Volume')
-            st.metric(label="Total Clicks", value=clics_chart_bar.sum()["Volume"])  
+            st.metric(label="Total Clicks", value=round(clics_chart_bar.sum()["Volume"],1))  
       
             fig_1 = px.bar(clics_chart_bar, x='Month', y='Volume', title='Total Clicks per Month')
             st.plotly_chart(fig_1, use_container_width=True)
