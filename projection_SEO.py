@@ -322,7 +322,7 @@ def total_sum_volume(df):
     s = pl.Series("search_query", ["Total Volume"])
 
     # Calculate the sum for each month column
-    total_sums = df.select(pl.exclude('search_query')).sum(axis=0).insert_at_idx(0, s)
+    total_sums = round(df.select(pl.exclude('search_query')).sum(axis=0).insert_at_idx(0, s))
 
     return df.vstack(total_sums)
 
@@ -700,7 +700,7 @@ if __name__ == "__main__":
             clics_chart_bar = total.melt(id_vars='search_query', 
                                value_vars=[col for col in total.columns if col != 'search_query'],
                                var_name='Month', value_name='Volume')
-            st.metric(label="Total Clicks", value=round(clics_chart_bar.sum()["Volume"],1))  
+            st.metric(label="Total Clicks", value=round(clics_chart_bar.sum()["Volume"],0))  
       
             fig_1 = px.bar(clics_chart_bar, x='Month', y='Volume', title='Total Clicks per Month')
             st.plotly_chart(fig_1, use_container_width=True)
