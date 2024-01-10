@@ -239,8 +239,7 @@ def brand_ranking (keywords,DB,your_brand_domain):
                 final_compet = final_compet.vstack(competitors.head(30))
                 competitors = competitors.clear()
         else:
-            print(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")  
-    st.write(final_compet)
+            st.write(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")  
     if rank.is_empty(): 
         st.write("here")
         return rank, rank, final_compet.unique(maintain_order=True)
