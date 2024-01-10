@@ -692,7 +692,7 @@ if __name__ == "__main__":
             clics = prod(df,joined_df)
             st.subheader("Clicks")
             clics_total = total_sum_volume(clics)
-            st.dataframe(clics_total,hide_index =True,use_container_width=True)
+            st.dataframe(clics_total.to_pandas().round(),hide_index =True,use_container_width=True)
             total = clics_total.to_pandas().tail(1)
             st.write("\n\n\n")
             
