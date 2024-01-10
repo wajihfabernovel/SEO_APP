@@ -322,9 +322,9 @@ def total_sum_volume(df):
     s = pl.Series("search_query", ["Total Volume"])
 
     # Calculate the sum for each month column
-    total_sums = round(df.select(pl.exclude('search_query')).sum(axis=0).insert_at_idx(0, s))
+    total_sums = df.select(pl.exclude('search_query')).sum(axis=0).insert_at_idx(0, s)
 
-    return df.vstack(total_sums)
+    return df.vstack(round(total_sums,0))
 
 
 # Function to download the DataFrame as an Excel file
