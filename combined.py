@@ -240,7 +240,7 @@ def brand_ranking (keywords,DB,your_brand_domain):
                 competitors = competitors.clear()
         else:
             print(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")  
-    st.write(rank)
+    st.write(final_compet)
     if rank.is_empty(): 
         st.write("here")
         return rank, rank, final_compet.unique(maintain_order=True)
