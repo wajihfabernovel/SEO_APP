@@ -324,7 +324,7 @@ def total_sum_volume(df):
     # Calculate the sum for each month column
     total_sums = df.select(pl.exclude('search_query')).sum(axis=0).insert_at_idx(0, s)
 
-    return df.vstack(round(total_sums,0))
+    return df.vstack(total_sums)
 
 
 # Function to download the DataFrame as an Excel file
