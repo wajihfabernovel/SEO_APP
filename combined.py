@@ -178,7 +178,7 @@ def generate_historical_metrics(api_client, customer_id,keywords,language,locati
                 monthly_results = monthly_results.with_columns(search_query=pl.lit(result.text),Appro_monthly=month.monthly_searches,day= 1, month =month.month,Year = month.year) 
                 final_monthly_results = final_monthly_results.vstack(monthly_results)
                 
-        final_monthly_results_final = final_monthly_results.with_columns(pl.col('month').apply(lambda x:datetime.date(1900, x, 1).strftime('%B')))
+        final_monthly_results_final = final_monthly_results.with_columns(pl.col('month').map_elements(lambda x:datetime.date(1900, x, 1).strftime('%B')))
         final_monthly_results_final = final_monthly_results_final.with_columns(pl.concat_str([pl.col('day'),pl.col("month"),pl.col("Year")],separator=" ").alias('Date')).select(pl.col('search_query'),pl.col('Date'),pl.col('Appro_monthly'))
         final_monthly_results_final = final_monthly_results_final.with_columns(
                pl.col("Date").str.to_date("%d %B %Y")
@@ -391,7 +391,7 @@ if __name__ == "__main__":
         month = today.month - 1 if today.month > 1 else 12
         last_day = calendar.monthrange(year, month)[1]
         max = datetime.date(year, month, last_day)
-        max_2 = datetime.date(year,month, last_day)
+        max_2 = datetime.date(today.year,month, 30)
         start_d = st.date_input("Choose the start date",value = max,format="YYYY/MM/DD",max_value =max,min_value =min)
     with col4:
         end_d = st.date_input("Choose the end date",value =max, format="YYYY/MM/DD",max_value =max,min_value =min)
