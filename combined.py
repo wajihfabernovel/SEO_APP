@@ -245,7 +245,7 @@ def brand_ranking (keywords,DB,your_brand_domain):
         print('it is empty')
         return rank, rank, final_compet.unique(maintain_order=True)
     else : 
-        print('it is not empty')"
+        print('it is not empty')
         rank = rank.group_by(["keyword","brand_domain"]).agg(pl.col("brand_ranking").min())
         return rank,rank.pivot(values="brand_ranking",index="keyword",columns="brand_domain"), final_compet.unique(maintain_order=True)
 def seo(keywords, DB):
