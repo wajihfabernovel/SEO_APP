@@ -238,11 +238,11 @@ def brand_ranking (keywords,DB,your_brand_domain):
                             t = t.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(domain), brand_ranking= pl.lit(position))
                             competitors = competitors.vstack(t)  
                 final_compet = final_compet.vstack(competitors.head(30))
+                st.dataframe(final_compet)
                 competitors = competitors.clear()
         else:
             st.write(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")  
     if rank.is_empty(): 
-        st.write('it is empty')
         return rank, rank, final_compet.unique(maintain_order=True)
     else : 
         st.write('it is not empty')
