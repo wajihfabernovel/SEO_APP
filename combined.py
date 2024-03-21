@@ -230,7 +230,6 @@ def brand_ranking (keywords,DB,your_brand_domain):
                     for j in range (len(your_brand_domain)):
                         if (domain in your_brand_domain[j]) or (your_brand_domain[j] in domain):
                             your_brand_position = position
-                            print(your_brand_position)
                             b = b.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(domain),brand_ranking= pl.lit(your_brand_position))
                             rank = rank.vstack(b)
         
@@ -243,11 +242,11 @@ def brand_ranking (keywords,DB,your_brand_domain):
         else:
             st.write(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")  
     if rank.is_empty(): 
-        print(final_compet.unique(maintain_order=True))
+         print('it is empty')
         return rank, rank, final_compet.unique(maintain_order=True)
     else : 
+        print('it is not empty')
         rank = rank.group_by(["keyword","brand_domain"]).agg(pl.col("brand_ranking").min())
-        print(final_compet.unique(maintain_order=True))
         return rank,rank.pivot(values="brand_ranking",index="keyword",columns="brand_domain"), final_compet.unique(maintain_order=True)
 def seo(keywords, DB):
     
