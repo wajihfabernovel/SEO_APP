@@ -6,6 +6,7 @@ import pandas as pd
 import streamlit_authenticator as stauth
 from google.ads.googleads.client import GoogleAdsClient
 import datetime 
+import calendar
 import xlsxwriter
 import plotly.express as px
 pl.Config.set_tbl_hide_column_data_types(True)
@@ -385,8 +386,12 @@ if __name__ == "__main__":
     with col3:
         today = datetime.datetime.now()
         min = datetime.date(today.year-2,today.month, 1)
-        max = datetime.date(today.year,today.month-1, 30)
-        max_2 = datetime.date(today.year,today.month-2, 30)
+        today = datetime.date.today()
+        year = today.year if today.month > 1 else today.year - 1
+        month = today.month - 1 if today.month > 1 else 12
+        last_day = calendar.monthrange(year, month)[1]
+        max = datetime.date(year, month, last_day)
+        max_2 = datetime.date(year,month, last_day)
         start_d = st.date_input("Choose the start date",value = max,format="YYYY/MM/DD",max_value =max,min_value =min)
     with col4:
         end_d = st.date_input("Choose the end date",value =max, format="YYYY/MM/DD",max_value =max,min_value =min)
