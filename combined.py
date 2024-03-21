@@ -391,7 +391,7 @@ if __name__ == "__main__":
         month = today.month - 1 if today.month > 1 else 12
         last_day = calendar.monthrange(year, month)[1]
         max = datetime.date(year, month, last_day)
-        max_2 = datetime.date(today.year,month, 30)
+        max_2 = datetime.date(year,month, last_day)
         start_d = st.date_input("Choose the start date",value = max,format="YYYY/MM/DD",max_value =max,min_value =min)
     with col4:
         end_d = st.date_input("Choose the end date",value =max, format="YYYY/MM/DD",max_value =max,min_value =min)
