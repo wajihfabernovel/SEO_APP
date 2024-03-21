@@ -243,7 +243,7 @@ def brand_ranking (keywords,DB,your_brand_domain):
         else:
             st.write(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")  
     if rank.is_empty(): 
-        st.write("here")
+        print(final_compet.unique(maintain_order=True))
         return rank, rank, final_compet.unique(maintain_order=True)
     else : 
         rank = rank.group_by(["keyword","brand_domain"]).agg(pl.col("brand_ranking").min())
