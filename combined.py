@@ -225,6 +225,8 @@ def brand_ranking (keywords,DB,your_brand_domain):
                 dfs_r = dfs_r.vstack(df)
                 for i in range(len(df)):
                     domain = df['Domain'][i]
+                    print("domain")
+                    print(domain)
                     position = df['Position'][i]
                     Keys = df['Key'][i]
                     for j in range (len(your_brand_domain)):
@@ -238,7 +240,7 @@ def brand_ranking (keywords,DB,your_brand_domain):
                             t = t.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(domain), brand_ranking= pl.lit(position))
                             competitors = competitors.vstack(t)  
                 final_compet = final_compet.vstack(competitors.head(30))
-                st.dataframe(final_compet)
+                print(final_compet)
                 competitors = competitors.clear()
         else:
             st.write(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")  
