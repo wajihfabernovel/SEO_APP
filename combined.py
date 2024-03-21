@@ -230,6 +230,7 @@ def brand_ranking (keywords,DB,your_brand_domain):
                     for j in range (len(your_brand_domain)):
                         if (domain in your_brand_domain[j]) or (your_brand_domain[j] in domain):
                             your_brand_position = position
+                            print(your_brand_position)
                             b = b.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(domain),brand_ranking= pl.lit(your_brand_position))
                             rank = rank.vstack(b)
         
