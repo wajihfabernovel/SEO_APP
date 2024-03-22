@@ -225,8 +225,6 @@ def brand_ranking (keywords,DB,your_brand_domain):
                 dfs_r = dfs_r.vstack(df)
                 for i in range(len(df)):
                     domain = df['Domain'][i]
-                    print("domain")
-                    print(domain)
                     position = df['Position'][i]
                     Keys = df['Key'][i]
                     for j in range (len(your_brand_domain)):
@@ -240,9 +238,9 @@ def brand_ranking (keywords,DB,your_brand_domain):
                             t = t.with_columns(keyword = pl.lit(Keys),brand_domain = pl.lit(domain), brand_ranking= pl.lit(position))
                             competitors = competitors.vstack(t)  
                 final_compet = final_compet.vstack(competitors.head(30))
-                print(final_compet)
                 competitors = competitors.clear()
         else:
+            print("semrush does not work")
             st.write(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")  
     if rank.is_empty(): 
         return rank, rank, final_compet.unique(maintain_order=True)
@@ -591,34 +589,34 @@ if __name__ == "__main__":
                 tickformat="%b\n%Y")
             st.plotly_chart(fig, use_container_width=True)
             st.write("\n\n\n\n\n")
-            your_brand_domain_input = your_brand_domain.split(',')
+            #your_brand_domain_input = your_brand_domain.split(',')
             # Fetch and display SEO data
-            rank_,rankings, competition = brand_ranking(keywords,DB_sem.lower(),your_brand_domain_input)
+            #rank_,rankings, competition = brand_ranking(keywords,DB_sem.lower(),your_brand_domain_input)
             
             #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
-            st.write("SemRush Keyword's ranking ")
-            filtered_rankings = dataframe_explorer(rankings.to_pandas(), case=False)
-            st.dataframe(filtered_rankings,hide_index =True,use_container_width=True)
-            filtered_competition = dataframe_explorer(competition.to_pandas(), case=False)
-            st.dataframe(filtered_competition,hide_index =True,use_container_width=True)            
+            #st.write("SemRush Keyword's ranking ")
+            #filtered_rankings = dataframe_explorer(rankings.to_pandas(), case=False)
+            #st.dataframe(filtered_rankings,hide_index =True,use_container_width=True)
+            #filtered_competition = dataframe_explorer(competition.to_pandas(), case=False)
+            #st.dataframe(filtered_competition,hide_index =True,use_container_width=True)            
         
-            myAPIToken = 'c186250c0f3ba9502c38caa53efc7edb'
-            params = {
-                "action": "export_ctr",
-                "token": myAPIToken,  # Get token from environment variable
-                "inputs": f'{{"date":"{web_date_final}", "searches-type":"{web_search}", "value":"{web_val}", "device":"{web_device}", "audience":"{web_aud}", "format":"json"}}'
-            }
+            #myAPIToken = 'c186250c0f3ba9502c38caa53efc7edb'
+            #params = {
+                #"action": "export_ctr",
+                #"token": myAPIToken,  # Get token from environment variable
+                #"inputs": f'{{"date":"{web_date_final}", "searches-type":"{web_search}", "value":"{web_val}", "device":"{web_device}", "audience":"{web_aud}", "format":"json"}}'
+            #}
             
-            url = f"https://api.awrcloud.com/v2/get.php"
-            response = requests.get(url, params=params)
+            #url = f"https://api.awrcloud.com/v2/get.php"
+            #response = requests.get(url, params=params)
             # Make sure the request was successful before processing
             
-            data = response.json()
-            web_ranking = pl.DataFrame(data["details"]).with_columns(pl.col("position").cast(pl.Int32).alias("position"))
-            final_table = competition.vstack(rank_).join(web_ranking,left_on="brand_ranking", right_on="position").join(overview,left_on="keyword",right_on="search_query").select(["brand_domain","keyword","brand_ranking","web_ctr","appro_monthly_search"]).sort(["brand_domain","brand_ranking"], descending=[False, False]).with_columns(pl.col("appro_monthly_search").sum().over("brand_domain").alias("sum")).with_columns((((pl.col("appro_monthly_search")*(pl.col("web_ctr")/100))/pl.col("sum"))*100).alias("Part_des_voix_%")).select(["brand_domain","keyword","Part_des_voix_%"]).to_pandas()
+            #data = response.json()
+            #web_ranking = pl.DataFrame(data["details"]).with_columns(pl.col("position").cast(pl.Int32).alias("position"))
+            #final_table = competition.vstack(rank_).join(web_ranking,left_on="brand_ranking", right_on="position").join(overview,left_on="keyword",right_on="search_query").select(["brand_domain","keyword","brand_ranking","web_ctr","appro_monthly_search"]).sort(["brand_domain","brand_ranking"], descending=[False, False]).with_columns(pl.col("appro_monthly_search").sum().over("brand_domain").alias("sum")).with_columns((((pl.col("appro_monthly_search")*(pl.col("web_ctr")/100))/pl.col("sum"))*100).alias("Part_des_voix_%")).select(["brand_domain","keyword","Part_des_voix_%"]).to_pandas()
             #st.dataframe(dataframe_explorer(final_table, case=False),hide_index =True,use_container_width=True) 
-            bar_chart = final_table.groupby(['brand_domain'])["Part_des_voix_%"].sum().reset_index().sort_values(by="Part_des_voix_%", ascending=False).head(10)
-            st.dataframe(dataframe_explorer(bar_chart, case=False),hide_index =True,use_container_width=True) 
+            #bar_chart = final_table.groupby(['brand_domain'])["Part_des_voix_%"].sum().reset_index().sort_values(by="Part_des_voix_%", ascending=False).head(10)
+            #st.dataframe(dataframe_explorer(bar_chart, case=False),hide_index =True,use_container_width=True) 
                 
         elif keywords_input:
             
@@ -641,46 +639,46 @@ if __name__ == "__main__":
                 tickformat="%b\n%Y")
             st.plotly_chart(fig, use_container_width=True)
             st.write("\n\n\n\n\n")
-            your_brand_domain_input = your_brand_domain.split(',')
+            #your_brand_domain_input = your_brand_domain.split(',')
             # Fetch and display SEO data
             
-            rank_,rankings, competition = brand_ranking(keywords,DB_sem.lower(),your_brand_domain_input)
-            st.write("SemRush Keyword's ranking ")
-            if not rankings.is_empty():
-                filtered_rankings = dataframe_explorer(rankings.to_pandas(), case=False)
-                st.dataframe(filtered_rankings,hide_index =True,use_container_width=True)
-                filtered_competition = dataframe_explorer(competition.to_pandas(), case=False)
-                st.dataframe(filtered_competition,hide_index =True,use_container_width=True)
-            else: 
-                filtered_competition = dataframe_explorer(competition.to_pandas(), case=False)
-                st.dataframe(filtered_competition,hide_index =True,use_container_width=True)
-            try:     
-                myAPIToken = 'c186250c0f3ba9502c38caa53efc7edb'
-                params = {
-                    "action": "export_ctr",
-                    "token": myAPIToken,  # Get token from environment variable
-                    "inputs": f'{{"date":"{web_date_final}", "searches-type":"{web_search}", "value":"{web_val}", "device":"{web_device}", "audience":"{web_aud}", "format":"json"}}'
-                }
+            #rank_,rankings, competition = brand_ranking(keywords,DB_sem.lower(),your_brand_domain_input)
+            #st.write("SemRush Keyword's ranking ")
+            #if not rankings.is_empty():
+                #filtered_rankings = dataframe_explorer(rankings.to_pandas(), case=False)
+                #st.dataframe(filtered_rankings,hide_index =True,use_container_width=True)
+                #filtered_competition = dataframe_explorer(competition.to_pandas(), case=False)
+                #st.dataframe(filtered_competition,hide_index =True,use_container_width=True)
+            #else: 
+                #filtered_competition = dataframe_explorer(competition.to_pandas(), case=False)
+                #st.dataframe(filtered_competition,hide_index =True,use_container_width=True)
+            #try:     
+                #myAPIToken = 'c186250c0f3ba9502c38caa53efc7edb'
+                #params = {
+                    #"action": "export_ctr",
+                    #"token": myAPIToken,  # Get token from environment variable
+                    #"inputs": f'{{"date":"{web_date_final}", "searches-type":"{web_search}", "value":"{web_val}", "device":"{web_device}", "audience":"{web_aud}", "format":"json"}}'
+                #}
                 
-                url = f"https://api.awrcloud.com/v2/get.php"
+                #url = f"https://api.awrcloud.com/v2/get.php"
     
-                response = requests.get(url, params=params)
+                #response = requests.get(url, params=params)
                 # Make sure the request was successful before processing
-                data = response.json()
-                web_ranking = pl.DataFrame(data["details"]).with_columns(pl.col("position").cast(pl.Int32).alias("position"))
-                final_table = competition.vstack(rank_).join(web_ranking,left_on="brand_ranking", right_on="position").join(overview,left_on="keyword",right_on="search_query").select(["brand_domain","keyword","brand_ranking","web_ctr","appro_monthly_search"]).sort(["brand_domain","brand_ranking"], descending=[False, False]).with_columns(pl.col("appro_monthly_search").sum().over("brand_domain").alias("sum")).with_columns((((pl.col("appro_monthly_search")*(pl.col("web_ctr")/100))/pl.col("sum"))*100).alias("Part_des_voix_%")).select(["brand_domain","keyword","Part_des_voix_%"]).to_pandas()
+                #data = response.json()
+                #web_ranking = pl.DataFrame(data["details"]).with_columns(pl.col("position").cast(pl.Int32).alias("position"))
+                #final_table = competition.vstack(rank_).join(web_ranking,left_on="brand_ranking", right_on="position").join(overview,left_on="keyword",right_on="search_query").select(["brand_domain","keyword","brand_ranking","web_ctr","appro_monthly_search"]).sort(["brand_domain","brand_ranking"], descending=[False, False]).with_columns(pl.col("appro_monthly_search").sum().over("brand_domain").alias("sum")).with_columns((((pl.col("appro_monthly_search")*(pl.col("web_ctr")/100))/pl.col("sum"))*100).alias("Part_des_voix_%")).select(["brand_domain","keyword","Part_des_voix_%"]).to_pandas()
                 #st.dataframe(dataframe_explorer(final_table, case=False),hide_index =True,use_container_width=True) 
-                bar_chart = final_table.groupby(['brand_domain'])["Part_des_voix_%"].sum().reset_index().sort_values(by="Part_des_voix_%", ascending=False).head(10)
-                st.dataframe(dataframe_explorer(bar_chart, case=False),hide_index =True,use_container_width=True)    
+                #bar_chart = final_table.groupby(['brand_domain'])["Part_des_voix_%"].sum().reset_index().sort_values(by="Part_des_voix_%", ascending=False).head(10)
+                #st.dataframe(dataframe_explorer(bar_chart, case=False),hide_index =True,use_container_width=True)    
                     
-                fig_1 = px.bar(bar_chart, y='Part_des_voix_%', x='brand_domain', text_auto='.2s')
-                st.plotly_chart(fig_1, use_container_width=True)
-                st.write("\n\n\n")
+                #fig_1 = px.bar(bar_chart, y='Part_des_voix_%', x='brand_domain', text_auto='.2s')
+                #st.plotly_chart(fig_1, use_container_width=True)
+                #st.write("\n\n\n")
                 
-            except: 
-                st.error('The domain you chose is not part of the top 100 domains for any of the keyword(s) ! Please choose another domain or change the keyword(s)', icon="🚨")
-            
-            excel_file = to_excel([overview, monthly_results,rankings,competition], ["search_volume_overview", "monthly_search_volume","SemRush_Keyword", "SemRush_Ranking"])
+            #except: 
+                #st.error('The domain you chose is not part of the top 100 domains for any of the keyword(s) ! Please choose another domain or change the keyword(s)', icon="🚨")
+            #excel_file = to_excel([overview, monthly_results,rankings,competition], ["search_volume_overview", "monthly_search_volume","SemRush_Keyword", "SemRush_Ranking"])
+            excel_file = to_excel([overview, monthly_results], ["search_volume_overview", "monthly_search_volume"])
             st.download_button(
             label="Download Excel file",
             data=excel_file,
