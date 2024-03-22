@@ -414,11 +414,11 @@ if __name__ == "__main__":
         end_year = datetime.datetime.strptime(str(end_d), "%Y-%m-%d").year
         
     st.write("\n\n\n")
-    st.title("SemRush")
+    #st.title("SemRush")
    
     # Allow user to manually enter keywords
     
-    your_brand_domain = st.text_input("Enter your brand domain")
+    #your_brand_domain = st.text_input("Enter your brand domain")
     sem_lang = ["AF",
     "AL",
     "DZ",
@@ -536,29 +536,29 @@ if __name__ == "__main__":
     "VN",
     "ZM",
     "ZW"]
-    default_ix_3 = sem_lang.index("FR")
-    DB_sem = st.selectbox("Select a country:", sem_lang, index=default_ix_3) 
-    searche_type = ["allSearches","branded","search-intent","long-tail","categories"]
-    devices = ["allDevices","desktop","mobile","tablet"]
-    audience = ["international","us","uk","aus"]
-    value = ["exact","average"]
-    st.write("\n\n\n")
-    st.title("Advanced Web Ranking")
-    col1, col2,col3 = st.columns(3)
-    with col1:
-        web_date = st.date_input("Choose a month",value = max_2,format="YYYY-MM-DD",max_value =max_2,min_value =min)
-        web_date = web_date.strftime("%Y-%m-%d")
-        web_date_final = set_day_to_15(web_date)
+    #default_ix_3 = sem_lang.index("FR")
+    #DB_sem = st.selectbox("Select a country:", sem_lang, index=default_ix_3) 
+    #searche_type = ["allSearches","branded","search-intent","long-tail","categories"]
+    #devices = ["allDevices","desktop","mobile","tablet"]
+    #audience = ["international","us","uk","aus"]
+    #value = ["exact","average"]
+    #st.write("\n\n\n")
+    #st.title("Advanced Web Ranking")
+    #col1, col2,col3 = st.columns(3)
+    #with col1:
+        #web_date = st.date_input("Choose a month",value = max_2,format="YYYY-MM-DD",max_value =max_2,min_value =min)
+        #web_date = web_date.strftime("%Y-%m-%d")
+        #web_date_final = set_day_to_15(web_date)
         #web_date_final = datetime.datetime.strptime(web_date_final, "%Y-%m-%d")
-    with col2:
-        web_search = st.selectbox("Select search type:", searche_type) 
-    with col3:
-        web_device = st.selectbox("Select search type:", devices)# Add more countries as needed
-    col4, col5 = st.columns(2)   
-    with col4:
-        web_aud = st.selectbox("Select an audience:", audience)  # Add more countries as needed    
-    with col5:
-        web_val = st.selectbox("Select value type:", value)    
+    #with col2:
+        #web_search = st.selectbox("Select search type:", searche_type) 
+    #with col3:
+        #web_device = st.selectbox("Select search type:", devices)# Add more countries as needed
+    #col4, col5 = st.columns(2)   
+    #with col4:
+        #web_aud = st.selectbox("Select an audience:", audience)  # Add more countries as needed    
+    #with col5:
+        #web_val = st.selectbox("Select value type:", value)    
     
     
     if st.checkbox("Submit") :
