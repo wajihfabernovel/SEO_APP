@@ -178,8 +178,7 @@ def convert_to_excel(dfs, sheet_names):
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
         for df, sheet_name in zip(dfs, sheet_names):
-            df.to_excel(writer,sheet_name, index=False)
-    writer.save()
+            df.to_excel(writer, sheet_name, index=False)
     output.seek(0)
     return output
 ########################################@
