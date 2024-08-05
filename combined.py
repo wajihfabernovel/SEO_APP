@@ -175,13 +175,11 @@ def generate_historical_metrics(api_client, customer_id, keywords, language, loc
     
 # Function to download the DataFrame as an Excel file
 def convert_to_excel(dfs, sheet_names):
-    """
-    Convert multiple dataframes to one Excel file with multiple sheets
-    """
     output = io.BytesIO()
-    with xlsxwriter.Workbook(output) as writer:
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
         for df, sheet_name in zip(dfs, sheet_names):
-            df.to_excel(writer,sheet_name)
+            df.to_excel(writer,sheet_name, index=False)
+    writer.save()
     output.seek(0)
     return output
 ########################################@
