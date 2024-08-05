@@ -567,8 +567,8 @@ if __name__ == "__main__":
             st.write("\n\n\n\n\n")
         
             # Plotly graph 
-             fig = px.line(graph, x=graph.index, y=graph.columns, title='Keywords volume overtime')
-                fig.update_xaxes(dtick="M1", tickformat="%b\n%Y")
+            fig = px.line(graph, x=graph.index, y=graph.columns, title='Keywords volume overtime')
+            fig.update_xaxes(dtick="M1", tickformat="%b\n%Y")
                 st.plotly_chart(fig, use_container_width=True)
             st.write("\n\n\n\n\n")
             #your_brand_domain_input = your_brand_domain.split(',')
@@ -613,8 +613,8 @@ if __name__ == "__main__":
             st.write("\n\n\n\n\n")
             
             # Plotly graph 
-            fig = px.line(graph, x="Date", y=graph.columns,hover_data={"Date": "|%B %Y"},title='Keywords volume overtime')
-            fig.update_xaxes(dtick="M1",tickformat="%b\n%Y")
+            fig = px.line(graph, x=graph.index, y=graph.columns, title='Keywords volume overtime')
+            fig.update_xaxes(dtick="M1", tickformat="%b\n%Y")
             st.plotly_chart(fig, use_container_width=True)
             st.write("\n\n\n\n\n")
             #your_brand_domain_input = your_brand_domain.split(',')
