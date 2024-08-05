@@ -174,7 +174,7 @@ def generate_historical_metrics(api_client, customer_id, keywords, language, loc
     return overview_df, monthly_results_df.pivot(index='search_query', columns='Date', values='monthly_searches'), graph_df
     
 # Function to download the DataFrame as an Excel file
-def to_excel(dfs, sheet_names):
+def to_excel(dfs, sheet_name):
     """
     Convert multiple dataframes to one Excel file with multiple sheets
     """
