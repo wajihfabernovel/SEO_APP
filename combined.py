@@ -658,10 +658,10 @@ if __name__ == "__main__":
             #excel_file = to_excel([overview, monthly_results,rankings,competition], ["search_volume_overview", "monthly_search_volume","SemRush_Keyword", "SemRush_Ranking"])
             excel_file = to_excel([overview, monthly_results], ["search_volume_overview", "monthly_search_volume"])
             st.download_button(
-            label="Download Excel file",
-            data=excel_file,
-            file_name="dataframes.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            )
+                    label="Download Excel file",
+                    data=excel_file,
+                    file_name="dataframes.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                )
             # Initialize the GoogleAdsClient with the credentials and developer token
             #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
