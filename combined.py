@@ -656,7 +656,7 @@ if __name__ == "__main__":
             #except: 
                 #st.error('The domain you chose is not part of the top 100 domains for any of the keyword(s) ! Please choose another domain or change the keyword(s)', icon="🚨")
             #excel_file = to_excel([overview, monthly_results,rankings,competition], ["search_volume_overview", "monthly_search_volume","SemRush_Keyword", "SemRush_Ranking"])
-            excel_file = to_excel([overview, monthly_results], ["search_volume_overview", "monthly_search_volume"])
+            excel_file = to_excel([overview, monthly_results])
             st.download_button(
                     label="Download Excel file",
                     data=excel_file,
