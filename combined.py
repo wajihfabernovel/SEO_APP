@@ -174,7 +174,7 @@ def generate_historical_metrics(api_client, customer_id, keywords, language, loc
     return overview_df, monthly_results_df.pivot(index='search_query', columns='Date', values='monthly_searches'), graph_df
     
 # Function to download the DataFrame as an Excel file
-def to_excel(dfs, sheet_name):
+def convert_to_excel(dfs, sheet_name):
     """
     Convert multiple dataframes to one Excel file with multiple sheets
     """
@@ -656,7 +656,7 @@ if __name__ == "__main__":
             #except: 
                 #st.error('The domain you chose is not part of the top 100 domains for any of the keyword(s) ! Please choose another domain or change the keyword(s)', icon="🚨")
             #excel_file = to_excel([overview, monthly_results,rankings,competition], ["search_volume_overview", "monthly_search_volume","SemRush_Keyword", "SemRush_Ranking"])
-            excel_file = to_excel([overview, monthly_results],sheet_names=["search_volume_overview", "monthly_search_volume"])
+            excel_file = convert_to_excel([overview, monthly_results],sheet_names=["search_volume_overview", "monthly_search_volume"])
             st.download_button(
                     label="Download Excel file",
                     data=excel_file,
