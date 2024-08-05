@@ -377,8 +377,7 @@ if __name__ == "__main__":
     list_location=location_full_list(api_client,client_)
     
     with col1:
-        default_ix = list_location.index("")
-        DB = st.selectbox("Select a country:", list_location, index = default_ix) 
+        DB = st.selectbox("Select a country:", [""] + list_location)
     with col2:
         default_ix_2 = list_language.index("French")
         lang = st.selectbox("Select a language:", list_language, index= default_ix_2)  # Add more countries as needed
