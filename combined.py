@@ -569,7 +569,7 @@ if __name__ == "__main__":
             # Plotly graph 
             fig = px.line(graph, x=graph.index, y=graph.columns, title='Keywords volume overtime')
             fig.update_xaxes(dtick="M1", tickformat="%b\n%Y")
-                st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True)
             st.write("\n\n\n\n\n")
             #your_brand_domain_input = your_brand_domain.split(',')
             # Fetch and display SEO data
