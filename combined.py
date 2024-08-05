@@ -181,7 +181,7 @@ def convert_to_excel(dfs, sheet_names):
     output = io.BytesIO()
     with xlsxwriter.Workbook(output) as writer:
         for df, sheet_name in zip(dfs, sheet_names):
-            df.to_excel(writer,worksheet= sheet_name,has_header=True,autofit=True)
+            df.to_excel(writer,sheet_name,has_header=True,autofit=True)
     output.seek(0)
     return output
 ########################################@
