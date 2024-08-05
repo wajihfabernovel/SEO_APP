@@ -126,8 +126,15 @@ def generate_historical_metrics(api_client, customer_id, keywords, language, loc
 
     request.customer_id = customer_id
     request.language = search_for_language_constants(api_client, customer_id, language)
+    
     if location:
-        request.geo_target_constants.extend([map_locations_ids_to_resource_names(api_client, customer_id, location)])
+        location_resource = map_locations_ids_to_resource_names(api_client, customer_id, location)
+        if location_resource:
+            request.geo_target_constants.extend([location_resource])
+        else:
+            st.error(f"Location '{location}' not found.")
+            return None, None, None
+
     request.keyword_plan_network = keyword_plan_network
     request.keywords.extend(keywords)
     request.historical_metrics_options.year_month_range.start.year = start_year
@@ -135,7 +142,11 @@ def generate_historical_metrics(api_client, customer_id, keywords, language, loc
     request.historical_metrics_options.year_month_range.end.year = end_year
     request.historical_metrics_options.year_month_range.end.month = end_month
 
-    response = keyword_service.generate_keyword_historical_metrics(request=request)
+    try:
+        response = keyword_service.generate_keyword_historical_metrics(request=request)
+    except Exception as e:
+        st.error(f"Error fetching historical metrics: {e}")
+        return None, None, None
 
     overview = []
     monthly_results = []
@@ -158,7 +169,9 @@ def generate_historical_metrics(api_client, customer_id, keywords, language, loc
     monthly_results_df = pd.DataFrame(monthly_results)
     monthly_results_df['Date'] = monthly_results_df.apply(lambda row: datetime.date(row['year'], row['month'], 1), axis=1)
 
-    return overview_df, monthly_results_df.pivot(index='search_query', columns='Date', values='monthly_searches')
+    graph_df = monthly_results_df.pivot(index='Date', columns='search_query', values='monthly_searches')
+
+    return overview_df, monthly_results_df.pivot(index='search_query', columns='Date', values='monthly_searches'), graph_df
     
 # Function to download the DataFrame as an Excel file
 def to_excel(dfs, sheet_names):
@@ -554,13 +567,9 @@ if __name__ == "__main__":
             st.write("\n\n\n\n\n")
         
             # Plotly graph 
-            fig = px.line(graph, x="Date", y=graph.columns,
-                          hover_data={"Date": "|%B %Y"},
-                          title='Keywords volume overtime')
-            fig.update_xaxes(
-                dtick="M1",
-                tickformat="%b\n%Y")
-            st.plotly_chart(fig, use_container_width=True)
+             fig = px.line(graph, x=graph.index, y=graph.columns, title='Keywords volume overtime')
+                fig.update_xaxes(dtick="M1", tickformat="%b\n%Y")
+                st.plotly_chart(fig, use_container_width=True)
             st.write("\n\n\n\n\n")
             #your_brand_domain_input = your_brand_domain.split(',')
             # Fetch and display SEO data
