@@ -110,81 +110,55 @@ def map_locations_ids_to_resource_names(api_client, customer_id, location_name):
     )
     batches = [batch.results for batch in stream]
     return batches[0][0].geo_target_constant.resource_name
+    
 def location_full_list(client, customer_id):
-    """Searches for language constants where the name includes a given string.
-    Args:
-        client: An initialized Google Ads API client.
-        customer_id: The Google Ads customer ID.
-        language_name: String included in the language name to search for.
-    """
-    # Get the GoogleAdsService client.
     googleads_service = client.get_service("GoogleAdsService")
-    # Create a query that retrieves the language constants where the name
-    # includes a given string.
-    query = f"""
-        SELECT
-        geo_target_constant.name
-        FROM geo_target_constant"""
-    # Issue a search request and process the stream response to print the
-    # requested field values for the carrier constant in each row.
-    stream = googleads_service.search_stream(
-        customer_id=customer_id, query=query
-    )
-    t = []
-    for batch in stream:
-        for row in batch.results:
-            location_name = row.geo_target_constant.name
-            t.append(location_name)
-    return t
-def generate_historical_metrics(api_client, customer_id,keywords,language,location,start_month,start_year,end_month,end_year):
-    overview = pl.DataFrame([])
-    final_overview = pl.DataFrame([])
-    monthly_results = pl.DataFrame([])
-    final_monthly_results = pl.DataFrame([])
+    query = "SELECT geo_target_constant.name FROM geo_target_constant"
+    stream = googleads_service.search_stream(customer_id=customer_id, query=query)
+    locations = [row.geo_target_constant.name for batch in stream for row in batch.results]
+    return locations
     
-    keyword = api_client.get_service("KeywordPlanIdeaService")
+
+def generate_historical_metrics(api_client, customer_id, keywords, language, location, start_month, start_year, end_month, end_year):
+    keyword_service = api_client.get_service("KeywordPlanIdeaService")
     request = api_client.get_type("GenerateKeywordHistoricalMetricsRequest")
-    keyword_plan_network = api_client.get_type(
-        "KeywordPlanNetworkEnum"
-    ).KeywordPlanNetwork.GOOGLE_SEARCH_AND_PARTNERS
-    
+    keyword_plan_network = api_client.get_type("KeywordPlanNetworkEnum").KeywordPlanNetwork.GOOGLE_SEARCH_AND_PARTNERS
+
     request.customer_id = customer_id
     request.language = search_for_language_constants(api_client, customer_id, language)
-    request.geo_target_constants.extend([map_locations_ids_to_resource_names(api_client, customer_id,location)])
+    if location:
+        request.geo_target_constants.extend([map_locations_ids_to_resource_names(api_client, customer_id, location)])
     request.keyword_plan_network = keyword_plan_network
     request.keywords.extend(keywords)
     request.historical_metrics_options.year_month_range.start.year = start_year
-    request.historical_metrics_options.year_month_range.start.month=start_month
+    request.historical_metrics_options.year_month_range.start.month = start_month
     request.historical_metrics_options.year_month_range.end.year = end_year
-    request.historical_metrics_options.year_month_range.end.month=end_month
-    keyword_historical_metrics_response = keyword.generate_keyword_historical_metrics(
-        request=request
-    )
-    for result in keyword_historical_metrics_response.results:
+    request.historical_metrics_options.year_month_range.end.month = end_month
+
+    response = keyword_service.generate_keyword_historical_metrics(request=request)
+
+    overview = []
+    monthly_results = []
+    for result in response.results:
         metric = result.keyword_metrics
-        overview = overview.with_columns(search_query=pl.lit(result.text), appro_monthly_search = pl.lit(metric.avg_monthly_searches),competition_level = pl.lit(metric.competition))
-        # These metrics include those for both the search query and any
-        # variants included in the response.
-        # If the metric is undefined, print (None) as a placeholder.
-        
-        final_overview = final_overview.vstack(overview)
-        
-        # Approximate number of searches on this query for the past twelve months.
+        overview.append({
+            "search_query": result.text,
+            "avg_monthly_searches": metric.avg_monthly_searches,
+            "competition": metric.competition
+        })
         for month in metric.monthly_search_volumes:
-            if month.month == 13:
-                monthly_results = monthly_results.with_columns(search_query=pl.lit(result.text),Appro_monthly=month.monthly_searches,day= 1, month = 1,Year = month.year+1)
-                final_monthly_results = final_monthly_results.vstack(monthly_results)
-            else:   
-                monthly_results = monthly_results.with_columns(search_query=pl.lit(result.text),Appro_monthly=month.monthly_searches,day= 1, month =month.month,Year = month.year) 
-                final_monthly_results = final_monthly_results.vstack(monthly_results)
-                
-        final_monthly_results_final = final_monthly_results.with_columns(pl.col('month').map_elements(lambda x:datetime.date(1900, x, 1).strftime('%B')))
-        final_monthly_results_final = final_monthly_results_final.with_columns(pl.concat_str([pl.col('day'),pl.col("month"),pl.col("Year")],separator=" ").alias('Date')).select(pl.col('search_query'),pl.col('Date'),pl.col('Appro_monthly'))
-        final_monthly_results_final = final_monthly_results_final.with_columns(
-               pl.col("Date").str.to_date("%d %B %Y")
-            )
-        final_monthly_results_final = final_monthly_results_final.group_by(["search_query","Date"]).agg(pl.col("Appro_monthly").max())
-    return final_overview,final_monthly_results_final.pivot(values ="Appro_monthly", index = "search_query", columns = "Date"),final_monthly_results_final.pivot(values ="Appro_monthly", index = "Date", columns = "search_query")
+            monthly_results.append({
+                "search_query": result.text,
+                "year": month.year,
+                "month": month.month,
+                "monthly_searches": month.monthly_searches
+            })
+
+    overview_df = pd.DataFrame(overview)
+    monthly_results_df = pd.DataFrame(monthly_results)
+    monthly_results_df['Date'] = monthly_results_df.apply(lambda row: datetime.date(row['year'], row['month'], 1), axis=1)
+
+    return overview_df, monthly_results_df.pivot(index='search_query', columns='Date', values='monthly_searches')
     
 # Function to download the DataFrame as an Excel file
 def to_excel(dfs, sheet_names):
