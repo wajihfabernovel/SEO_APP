@@ -174,14 +174,14 @@ def generate_historical_metrics(api_client, customer_id, keywords, language, loc
     return overview_df, monthly_results_df.pivot(index='search_query', columns='Date', values='monthly_searches'), graph_df
     
 # Function to download the DataFrame as an Excel file
-def convert_to_excel(dfs, sheet_name):
+def convert_to_excel(dfs, sheet_names):
     """
     Convert multiple dataframes to one Excel file with multiple sheets
     """
     output = io.BytesIO()
     with xlsxwriter.Workbook(output) as writer:
         for df, sheet_name in zip(dfs, sheet_names):
-            df.to_excel(writer, sheet_names=sheet_name,has_header=True,autofit=True)
+            df.to_excel(writer,worksheet= sheet_name,has_header=True,autofit=True)
     output.seek(0)
     return output
 ########################################@
