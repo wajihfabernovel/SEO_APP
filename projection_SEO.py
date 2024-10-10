@@ -6,11 +6,11 @@ import pandas as pd
 import streamlit_authenticator as stauth
 from google.ads.googleads.client import GoogleAdsClient
 from streamlit_extras.dataframe_explorer import dataframe_explorer
-from dateutil.relativedelta import relativedelta
 import xlsxwriter
 import plotly.express as px
 from statistics import mean
 import datetime
+from dateutil.relativedelta import relativedelta
 from datetime import  timedelta
 pl.Config.set_tbl_hide_column_data_types(True)
 import polars.selectors as cs
@@ -223,7 +223,6 @@ def brand_ranking (keywords,DB,your_brand_domain):
         url = f"https://api.semrush.com/?type=phrase_organic&key={API_KEY_SEM}&phrase={keyword}&export_columns=Kd,Dn,Po,&database={DB}"
         response = requests.get(url)
         # Make sure the request was successful before processing
-        
         if response.status_code == 200:
             df = pl.read_csv(io.StringIO(response.text), separator=';', eol_char='\n').with_columns(Key=pl.lit(keyword))
             if df.shape[1] == 3:
@@ -244,8 +243,7 @@ def brand_ranking (keywords,DB,your_brand_domain):
                 print(keyword)
                 non_rank = non_rank.vstack(non_rank.with_columns(keyword = pl.lit(keyword),brand_domain = pl.lit(your_brand_domain),brand_ranking= pl.lit(0)))
         else:
-            st.error(response.text)
-            st.error(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}. Check your API")
+            st.error(f"Failed to fetch data for keyword: {keyword}. Status Code: {response.status_code}")
     final_rest = pl.Series(rest_).unique().to_list()
     for k in range(len(final_rest)) : 
         b = b.vstack(b.with_columns(keyword = pl.lit(final_rest[k]),brand_domain = pl.lit(your_brand_domain),brand_ranking= pl.lit(0)))
@@ -318,6 +316,9 @@ def prod(impressions_df,ctr_df):
     return result
 
 def total_sum_volume(df):
+    if df.height == 0:
+        st.warning("The DataFrame is empty. Cannot calculate total sum.")
+        return df  # Return the empty DataFrame to avoid further errors
 
     s = pl.Series("search_query", ["Total Volume"])
 
@@ -325,6 +326,7 @@ def total_sum_volume(df):
     total_sums = df.select(pl.exclude('search_query')).sum(axis=0).insert_at_idx(0, s)
 
     return df.vstack(total_sums)
+
 
 
 # Function to download the DataFrame as an Excel file
@@ -355,20 +357,7 @@ if __name__ == "__main__":
             "credentials": creds         
         }
     }
-    st.markdown("""
-    <style>
-    .logo {
-        max-width: 10%;
-        position: absolute;
-        top: 15px;
-        left: 15px;
-        z-index: 999;
-    }
-    </style>
-    """, unsafe_allow_html=True)
 
-    # Display the logo
-    st.image("./logo.png", use_column_width=True)  # Using OpenAI's favicon as an example logo
     
     # Add a spacer after the logo
     st.write("\n\n\n")
@@ -385,7 +374,6 @@ if __name__ == "__main__":
     api_client = GoogleAdsClient.load_from_dict(
                 name_to_api_key[client_credentials]["credentials"]
             )
-    print(api_client)
     client_ = name_to_api_key[client_credentials]["client_id"]
     list_language = language_full_list(api_client,client_)
     list_location=location_full_list(api_client,client_)
@@ -412,8 +400,8 @@ if __name__ == "__main__":
     with col5:
         today = datetime.datetime.now()
         min_ = datetime.date(today.year-2,today.month, 1)
-        max_ = datetime.date(today.year-1,12, 30)
-        max_2 = datetime.date(today.year-1,11, 30)
+        max_ = datetime.date(today.year,today.month - 1, 30)
+        max_2 = datetime.date(today.year,today.month - 2, 30)
         max_start = datetime.date(today.year-1,today.month, 30)
         start_d = st.date_input("Choose the start date",value = max_start,format="YYYY/MM/DD",max_value =max_,min_value =min_)
     with col6:
@@ -640,23 +628,28 @@ if __name__ == "__main__":
             st.dataframe(df_total,hide_index =True,use_container_width=True)
             # Generate a list of the next 12 months
             current_month = datetime.datetime.now()
-            months = [(current_month + relativedelta(months=i+1)).strftime("%B %Y") for i in range(12)]
+           
+            for i in range(12):
+                months = [(current_month + relativedelta(months=i+1)).strftime("%B %Y")]
+                print(months)
             # Initialize session state for rankings if not already done
-            if 'rankings_data' not in st.session_state:
-                st.session_state['rankings_data'] = []
+            #if 'rankings_data' not in st.session_state:
+            st.session_state['rankings_data'] = []
+
             for keyword in keywords:
                 st.write(f"Projection for {keyword}")
-                with st.expander("Enter Rankings"):
-                    for month in months:
+    
+    
+                with st.expander("Enter Rankings") :
+                    for month in months: 
                         input_key = f"{keyword}_{month}"
-                        print(input_key)
-
+                     
                         # Assuming 'value_' is correctly set as per your logic
                         value_ = rankings.filter(pl.col("keyword") == keyword).select(cs.last()).item()
 
                         # Use the value from the existing rankings data as the default, if it exists
                         existing_rank = next((item['Ranking'] for item in st.session_state['rankings_data'] if item['Keyword'] == keyword and item['Month'] == month), value_)
-
+                    
                         # Create the input and update session state on change
                         if value_ == 0: 
                             rank = st.number_input(f"Ranking for {month}", key=input_key, max_value=101, min_value=1, value=101, step=1)
@@ -664,9 +657,12 @@ if __name__ == "__main__":
                             rank = st.number_input(f"Ranking for {month}", key=input_key, max_value=value_, min_value=1, value=1, step=1)
                         else : 
                             rank = st.number_input(f"Ranking for {month}", key=input_key, max_value=value_, min_value=1, value=value_, step=1)
+                        
                         # Update the rankings data in the session state
                         st.session_state['rankings_data'] = [item for item in st.session_state['rankings_data'] if not (item['Keyword'] == keyword and item['Month'] == month)]
                         st.session_state['rankings_data'].append({'Keyword': keyword, 'Month': month, 'Ranking': rank})
+                   
+                        
 
             # Convert the session state data to DataFrame
             st.write("Projected Rankings")
@@ -688,11 +684,12 @@ if __name__ == "__main__":
             result_df = joined_df.pivot(index="Keyword", columns="Month", values="web_ctr")
             st.subheader("CTR")
             st.dataframe(result_df,hide_index =True,use_container_width=True)
-            
+            print(df)
+            print(joined_df)
             clics = prod(df,joined_df)
             st.subheader("Clicks")
             clics_total = total_sum_volume(clics)
-            st.dataframe(clics_total.to_pandas().round(),hide_index =True,use_container_width=True)
+            st.dataframe(clics_total,hide_index =True,use_container_width=True)
             total = clics_total.to_pandas().tail(1)
             st.write("\n\n\n")
             
@@ -700,7 +697,7 @@ if __name__ == "__main__":
             clics_chart_bar = total.melt(id_vars='search_query', 
                                value_vars=[col for col in total.columns if col != 'search_query'],
                                var_name='Month', value_name='Volume')
-            st.metric(label="Total Clicks", value=round(clics_chart_bar.sum()["Volume"],0))  
+            st.metric(label="Total Clicks", value=clics_chart_bar.sum()["Volume"])  
       
             fig_1 = px.bar(clics_chart_bar, x='Month', y='Volume', title='Total Clicks per Month')
             st.plotly_chart(fig_1, use_container_width=True)

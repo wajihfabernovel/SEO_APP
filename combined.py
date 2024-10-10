@@ -325,19 +325,6 @@ if __name__ == "__main__":
             "credentials": creds         
         }
     }
-    st.markdown("""
-    <style>
-    .logo {
-        max-width: 10%;
-        position: absolute;
-        top: 15px;
-        left: 15px;
-        z-index: 999;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-    # Display the logo
-    st.image("./logo.png", use_column_width=True)  # Using OpenAI's favicon as an example logo
     
     # Add a spacer after the logo
     st.write("\n\n\n")

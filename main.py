@@ -1,4 +1,3 @@
-from st_pages import Page, add_page_title, show_pages
 import streamlit as st
 import requests
 import polars as pl
@@ -7,32 +6,30 @@ import pandas as pd
 import streamlit_authenticator as stauth
 from google.ads.googleads.client import GoogleAdsClient
 
-
 pl.Config.set_tbl_hide_column_data_types(True)
 
-#Import the YAML file into your script
+# Import the YAML file into your script
 import yaml
 from yaml.loader import SafeLoader
 with open('./config.yaml') as file:
     config = yaml.load(file, Loader=SafeLoader)
-    
-    
-   #Create the authenticator object
+
+# Create the authenticator object
 authenticator = stauth.Authenticate(
     config['credentials'],
     config['cookie']['name'],
     config['cookie']['key'],
     config['cookie']['expiry_days'],
     config['preauthorized']
-) 
-    
-name, authentication_status, username = authenticator.login('Login', 'main')    
+)
 
-    
+name, authentication_status, username = authenticator.login('Login', 'main')
+
 # Streamlit UI
 if authentication_status:
     authenticator.logout('Logout', 'main')
-    if __name__ == "__main__":    
+
+    if __name__ == "__main__":
         st.markdown("""
         <style>
         .logo {
@@ -44,24 +41,44 @@ if authentication_status:
         }
         </style>
         """, unsafe_allow_html=True)
-        
+
         # Display the logo
-        st.image("./logo.png", use_column_width=True)  # Using OpenAI's favicon as an example logo
-        
-        show_pages(
-                [
-                Page("./main.py", "Home", "🏠"),
-                Page("./combined.py", "SEO Tool", "📈"),
-                Page("./projection_SEO.py", "Prediction Tool", "📈"),
-                Page("./lighthouse_2.py", "Audit Tool 1", "📈"),
-                Page("./lighthouse.py", "Audit Tool 2", "📈")
-                # The pages appear in the order you pass them
-                ]
+        st.image("./logo.png", use_column_width=True)
+
+        # Sidebar for navigation
+        page = st.sidebar.radio(
+            "Navigation",
+            ["Home", "SEO Tool", "Prediction Tool", "Audit Tool 1", "Audit Tool 2"]
         )
-        "## Welcome to EY Fabernovel SEO Dashboard !"
-        st.balloons()
+
+        # Page logic based on selected page
+        if page == "Home":
+            st.title("Home")
+            st.balloons()
+            st.write("## Welcome to EY Fabernovel SEO Dashboard!")
+        
+        elif page == "SEO Tool":
+            st.title("SEO Tool")
+            # You can run the content of combined.py here
+            exec(open("./combined.py").read())
+        
+        elif page == "Prediction Tool":
+            st.title("Prediction Tool")
+            # You can run the content of projection_SEO.py here
+            exec(open("./projection_SEO.py").read())
+        
+        elif page == "Audit Tool 1":
+            st.title("Audit Tool 1")
+            # You can run the content of lighthouse_2.py here
+            exec(open("./lighthouse_2.py").read())
+        
+        elif page == "Audit Tool 2":
+            st.title("Audit Tool 2")
+            # You can run the content of lighthouse.py here
+            exec(open("./lighthouse.py").read())
+
 elif authentication_status == False:
     st.error('Username/password is incorrect')
+
 elif authentication_status == None:
-    st.warning('Please enter your username and password')    
-        # Optional method to add title and icon to current page
+    st.warning('Please enter your username and password')
