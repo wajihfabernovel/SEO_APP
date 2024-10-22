@@ -118,15 +118,31 @@ def location_full_list(client, customer_id):
     return locations
     
 
-def generate_historical_metrics(api_client, customer_id, keywords, language, location, start_month,start_year, end_month,end_year):
+def generate_historical_metrics(api_client, customer_id, keywords, language, location, start_d, end_d):
     keyword_service = api_client.get_service("KeywordPlanIdeaService")
     request = api_client.get_type("GenerateKeywordHistoricalMetricsRequest")
     keyword_plan_network = api_client.get_type("KeywordPlanNetworkEnum").KeywordPlanNetwork.GOOGLE_SEARCH_AND_PARTNERS
+
+    # Extract year and month from the start and end dates
+    start_month = start_d.month
+    start_year = start_d.year
+    end_month = end_d.month
+    end_year = end_d.year
+
+    # Log the dates being used for debugging
+    st.write(f"Start Date: {start_year}-{start_month}")
+    st.write(f"End Date: {end_year}-{end_month}")
 
     # Ensure the start date is before the end date
     if start_d > end_d:
         st.error("Start date cannot be later than end date.")
         return None, None, None
+
+    # Handle January correctly
+    if start_month == 1:
+        start_month = 1  # Ensure January is handled as month 1
+    if end_month == 1:
+        end_month = 1  # Ensure January is handled as month 1
 
     # Ensure valid month range
     if not (1 <= start_month <= 12) or not (1 <= end_month <= 12):
@@ -152,11 +168,14 @@ def generate_historical_metrics(api_client, customer_id, keywords, language, loc
     # Add keywords
     request.keywords.extend(keywords)
 
-    # Set the start and end dates in the correct format
-    request.historical_metrics_options.year_month_range.start.year = start_year
-    request.historical_metrics_options.year_month_range.start.month = start_month
-    request.historical_metrics_options.year_month_range.end.year = end_year
-    request.historical_metrics_options.year_month_range.end.month = end_month
+    # Correctly set the start and end dates in the YearMonth format
+    year_month_range = api_client.get_type("YearMonthRange")
+    year_month_range.start.year = start_year
+    year_month_range.start.month = start_month
+    year_month_range.end.year = end_year
+    year_month_range.end.month = end_month
+
+    request.historical_metrics_options.year_month_range = year_month_range
 
     try:
         # Fetch historical metrics from the API
