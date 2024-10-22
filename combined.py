@@ -213,7 +213,7 @@ def generate_historical_metrics(api_client, customer_id, keywords, language, loc
     for result in response.results:
         metric = result.keyword_metrics
         overview.append({
-            "search_query": result.text
+            "search_query": result.text,
             "avg_monthly_searches": metric.avg_monthly_searches,
             "competition": metric.competition
         })
