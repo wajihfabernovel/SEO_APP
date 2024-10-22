@@ -22,9 +22,7 @@ logging.basicConfig(
 with open('config.yaml') as file:
     config = yaml.safe_load(file)
 
-# Use a unique key for CookieManager
-cookie_manager = stx.CookieManager(key="unique_cookie_manager_key")
-
+# Assign a unique key to CookieManager
 authenticator = stauth.Authenticate(
     config['credentials'],
     config['cookie']['name'],
@@ -33,8 +31,8 @@ authenticator = stauth.Authenticate(
     config['preauthorized']
 )
 
-# Set the unique CookieManager instance to authenticator
-authenticator.cookie_manager = cookie_manager
+# Use a unique key for the CookieManager to avoid DuplicateWidgetID
+authenticator.cookie_manager = stx.CookieManager(key='unique_cookie_manager_key')
 
 name, authentication_status, username = authenticator.login('Login', 'main')
 
@@ -87,8 +85,8 @@ if authentication_status:
     st.write("\n\n\n")
     
     # Input for keywords or file upload
-    uploaded_file = st.file_uploader("Upload a file containing keywords", type=["xlsx"], key='file_uploader_key_unique')
-    keywords_input = st.text_area("Or enter keywords manually (separated by a line)", key='keywords_input_key_unique')
+    uploaded_file = st.file_uploader("Upload a file containing keywords", type=["xlsx"])
+    keywords_input = st.text_area("Or enter keywords manually (separated by a line)")
     
     # Define your API credentials
     creds = {
@@ -112,7 +110,7 @@ if authentication_status:
     client_ = name_to_api_key[client_credentials]["client_id"]
 
     # Handle file upload or manual keyword input
-    if st.checkbox("Submit", key='submit_key_unique'):
+    if st.checkbox("Submit"):
         if uploaded_file is not None:
             data = pl.read_excel(uploaded_file, read_csv_options={"has_header": False})
             keywords = data['column_1'].to_list()
@@ -138,7 +136,6 @@ if authentication_status:
                 data=excel_file,
                 file_name="dataframes.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                key='download_button_key_unique'
             )
         
         elif keywords_input:
@@ -165,7 +162,6 @@ if authentication_status:
                 data=excel_file,
                 file_name="dataframes.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                key='download_button_manual_key_unique'
             )
 
 # Utility function for downloading as Excel
@@ -292,19 +288,19 @@ if __name__ == "__main__":
     st.write("\n\n\n")
     
     st.write("Enter a keyword and select a country to fetch SEO data.")
-    uploaded_file = st.file_uploader("Upload an Excel file containing keywords", type=["xlsx"], key='file_uploader_key_unique')
+    uploaded_file = st.file_uploader("Upload an Excel file containing keywords", type=["xlsx"], key='file_uploader_key')
         
     # Allow user to manually enter keywords
-    keywords_input = st.text_area("Or enter keywords manually (separated by a line)", key='keywords_input_key_unique')
+    keywords_input = st.text_area("Or enter keywords manually (separated by a line)", key='keywords_input_key')
     st.title("Google Ads")
 
     col1, col2 = st.columns(2)
     
     with col1:
-        DB = st.selectbox("Select a country:", [""] + list_location, key='location_select_key_unique')
+        DB = st.selectbox("Select a country:", [""] + list_location, key='location_select_key')
     with col2:
         default_ix_2 = list_language.index("French")
-        lang = st.selectbox("Select a language:", list_language, index=default_ix_2, key='language_select_key_unique')
+        lang = st.selectbox("Select a language:", list_language, index=default_ix_2, key='language_select_key')
     
     col3, col4 = st.columns(2)   
     with col3:
@@ -316,9 +312,9 @@ if __name__ == "__main__":
         last_day = calendar.monthrange(year, month)[1]
         max = datetime.date(year, month, last_day)
         max_2 = datetime.date(year, month, last_day)
-        start_d = st.date_input("Choose the start date", value=max, format="YYYY/MM/DD", max_value=max, min_value=min, key='start_date_key_unique')
+        start_d = st.date_input("Choose the start date", value=max, format="YYYY/MM/DD", max_value=max, min_value=min, key='start_date_key')
     with col4:
-        end_d = st.date_input("Choose the end date", value=max, format="YYYY/MM/DD", max_value=max, min_value=min, key='end_date_key_unique')
+        end_d = st.date_input("Choose the end date", value=max, format="YYYY/MM/DD", max_value=max, min_value=min, key='end_date_key')
     
     # Ensure valid month transitions
     if start_d.month == 1:    
@@ -336,7 +332,7 @@ if __name__ == "__main__":
         end_year = end_d.year
 
     # Submit form to fetch data
-    if st.checkbox("Submit", key='submit_key_unique'):
+    if st.checkbox("Submit", key='submit_key'):
         if uploaded_file is not None:
             data = pl.read_excel(uploaded_file, read_csv_options={"has_header": False})
             keywords = data['column_1'].to_list()
@@ -362,7 +358,7 @@ if __name__ == "__main__":
                 data=excel_file,
                 file_name="dataframes.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                key='download_button_key_unique'
+                key='download_button_key'
             )
         
         elif keywords_input:
@@ -389,5 +385,6 @@ if __name__ == "__main__":
                 data=excel_file,
                 file_name="dataframes.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                key='download_button_manual_key_unique'
+                key='download_button_manual_key'
             )
+
