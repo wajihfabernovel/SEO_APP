@@ -372,6 +372,7 @@ if __name__ == "__main__":
         st.write(start_month)
         start_year = datetime.datetime.strptime(str(start_d), "%Y-%m-%d").year - 1
         end_month = datetime.datetime.strptime(str(end_d), "%Y-%m-%d").month
+        st.write(end_month)
         end_year = datetime.datetime.strptime(str(end_d), "%Y-%m-%d").year
     elif datetime.datetime.strptime(str(end_d), "%Y-%m-%d").month == 1 : 
         start_month = datetime.datetime.strptime(str(start_d), "%Y-%m-%d").month
