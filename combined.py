@@ -619,7 +619,7 @@ if __name__ == "__main__":
             keywords = keywords_input.split('\n')
             
             #api_client = GoogleAdsClient.load_from_storage("cred.yaml")
-            overview, monthly_results, graph = generate_historical_metrics(api_client,client_,keywords,lang,DB,start_month,start_year,end_month,end_year)
+            overview, monthly_results, graph = generate_historical_metrics(api_client,client_,keywords,lang,DB,start_d, end_d)
             st.write("Google Keyword Planner Volume data")
             st.dataframe(overview,hide_index =True,use_container_width=True)
             st.write("Google Keyword Palnner App Monthly Volume data")
