@@ -138,17 +138,6 @@ def generate_historical_metrics(api_client, customer_id, keywords, language, loc
         st.error("Start date cannot be later than end date.")
         return None, None, None
 
-    # Handle January correctly
-    if start_month == 1:
-        start_month = 1  # Ensure January is handled as month 1
-    if end_month == 1:
-        end_month = 1  # Ensure January is handled as month 1
-
-    # Ensure valid month range
-    if not (1 <= start_month <= 12) or not (1 <= end_month <= 12):
-        st.error("Invalid month values in date range.")
-        return None, None, None
-
     # Set the customer ID and network type
     request.customer_id = customer_id
     request.keyword_plan_network = keyword_plan_network
@@ -168,14 +157,15 @@ def generate_historical_metrics(api_client, customer_id, keywords, language, loc
     # Add keywords
     request.keywords.extend(keywords)
 
-    # Correctly set the start and end dates in the YearMonth format
+    # Create and set the YearMonthRange for historical metrics options
     year_month_range = api_client.get_type("YearMonthRange")
     year_month_range.start.year = start_year
     year_month_range.start.month = start_month
     year_month_range.end.year = end_year
     year_month_range.end.month = end_month
 
-    request.historical_metrics_options.year_month_range = year_month_range
+    # Assign the YearMonthRange object to the historical metrics options
+    request.historical_metrics_options.year_month_range.CopyFrom(year_month_range)
 
     try:
         # Fetch historical metrics from the API
