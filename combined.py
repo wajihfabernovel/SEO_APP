@@ -124,10 +124,10 @@ def generate_historical_metrics(api_client, customer_id, keywords, language, loc
     keyword_plan_network = api_client.get_type("KeywordPlanNetworkEnum").KeywordPlanNetwork.GOOGLE_SEARCH_AND_PARTNERS
 
     # Extract year and month from the start and end dates
-    start_month = start_d.month
-    start_year = start_d.year
-    end_month = end_d.month
-    end_year = end_d.year
+    start_month = datetime.datetime.strptime(str(start_d), "%Y-%m-%d").month +1
+    start_year = datetime.datetime.strptime(str(start_d), "%Y-%m-%d").year
+    end_month = datetime.datetime.strptime(str(end_d), "%Y-%m-%d").month
+    end_year = datetime.datetime.strptime(str(end_d), "%Y-%m-%d").year
 
     # Log the dates being used for debugging
     st.write(f"Start Date: {start_year}-{start_month}")
@@ -160,7 +160,7 @@ def generate_historical_metrics(api_client, customer_id, keywords, language, loc
     # Create and set the YearMonthRange for historical metrics options
     year_month_range = api_client.get_type("YearMonthRange")
     year_month_range.start.year = start_year
-    year_month_range.start.month = 2
+    year_month_range.start.month = start_month
     year_month_range.end.year = end_year
     year_month_range.end.month = end_month
 
@@ -397,12 +397,8 @@ if __name__ == "__main__":
     with col4:
         end_d = st.date_input("Choose the end date",value =max, format="YYYY/MM/DD",max_value =max,min_value =min)
         
-    # Transform the month 13 to 1 of the next year 
-    
-    start_month = datetime.datetime.strptime(str(start_d), "%Y-%m-%d").month
-    start_year = datetime.datetime.strptime(str(start_d), "%Y-%m-%d").year
-    end_month = datetime.datetime.strptime(str(end_d), "%Y-%m-%d").month
-    end_year = datetime.datetime.strptime(str(end_d), "%Y-%m-%d").year
+        
+    st.write("\n\n\n")
         
     st.write("\n\n\n")
     #st.title("SemRush")
