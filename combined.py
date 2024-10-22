@@ -367,21 +367,19 @@ if __name__ == "__main__":
         end_d = st.date_input("Choose the end date",value =max, format="YYYY/MM/DD",max_value =max,min_value =min)
         
     # Transform the month 13 to 1 of the next year 
-    if datetime.datetime.strptime(str(start_d), "%Y-%m-%d").month == 1 :    
-        start_month = datetime.datetime.strptime(str(12), "%m").month +1
-        start_year = datetime.datetime.strptime(str(start_d), "%Y-%m-%d").year - 1
-        end_month = datetime.datetime.strptime(str(end_d), "%Y-%m-%d").month
-        end_year = datetime.datetime.strptime(str(end_d), "%Y-%m-%d").year
-    elif datetime.datetime.strptime(str(end_d), "%Y-%m-%d").month == 1 : 
-        start_month = datetime.datetime.strptime(str(start_d), "%Y-%m-%d").month
-        start_year = datetime.datetime.strptime(str(start_d), "%Y-%m-%d").year
-        end_month = datetime.datetime.strptime(str(12), "%m").month +1
-        end_year = datetime.datetime.strptime(str(end_d), "%Y-%m-%d").year - 1
-    else: 
-        start_month = datetime.datetime.strptime(str(start_d), "%Y-%m-%d").month
-        start_year = datetime.datetime.strptime(str(start_d), "%Y-%m-%d").year
-        end_month = datetime.datetime.strptime(str(end_d), "%Y-%m-%d").month
-        end_year = datetime.datetime.strptime(str(end_d), "%Y-%m-%d").year
+    if start_d.month == 1:
+        start_month = 12
+        start_year = start_d.year - 1
+    else:
+        start_month = start_d.month - 1
+        start_year = start_d.year
+    
+    if end_d.month == 1:
+        end_month = 12
+        end_year = end_d.year - 1
+    else:
+        end_month = end_d.month - 1
+        end_year = end_d.year
         
     st.write("\n\n\n")
     #st.title("SemRush")
