@@ -118,14 +118,29 @@ def location_full_list(client, customer_id):
     return locations
     
 
-def generate_historical_metrics(api_client, customer_id, keywords, language, location, start_month, start_year, end_month, end_year):
+def generate_historical_metrics(api_client, customer_id, keywords, language, location, start_d, end_d):
     keyword_service = api_client.get_service("KeywordPlanIdeaService")
     request = api_client.get_type("GenerateKeywordHistoricalMetricsRequest")
     keyword_plan_network = api_client.get_type("KeywordPlanNetworkEnum").KeywordPlanNetwork.GOOGLE_SEARCH_AND_PARTNERS
 
+    # Ensure the start date is before the end date
+    if start_d > end_d:
+        st.error("Start date cannot be later than end date.")
+        return None, None, None
+
+    # Ensure valid month range
+    if not (1 <= start_month <= 12) or not (1 <= end_month <= 12):
+        st.error("Invalid month values in date range.")
+        return None, None, None
+
+    # Set the customer ID and network type
     request.customer_id = customer_id
+    request.keyword_plan_network = keyword_plan_network
+
+    # Set the language
     request.language = search_for_language_constants(api_client, customer_id, language)
-    
+
+    # Set the location if provided
     if location:
         location_resource = map_locations_ids_to_resource_names(api_client, customer_id, location)
         if location_resource:
@@ -134,19 +149,23 @@ def generate_historical_metrics(api_client, customer_id, keywords, language, loc
             st.error(f"Location '{location}' not found.")
             return None, None, None
 
-    request.keyword_plan_network = keyword_plan_network
+    # Add keywords
     request.keywords.extend(keywords)
+
+    # Set the start and end dates in the correct format
     request.historical_metrics_options.year_month_range.start.year = start_year
     request.historical_metrics_options.year_month_range.start.month = start_month
     request.historical_metrics_options.year_month_range.end.year = end_year
     request.historical_metrics_options.year_month_range.end.month = end_month
 
     try:
+        # Fetch historical metrics from the API
         response = keyword_service.generate_keyword_historical_metrics(request=request)
     except Exception as e:
         st.error(f"Error fetching historical metrics: {e}")
         return None, None, None
 
+    # Parse the response to generate dataframes
     overview = []
     monthly_results = []
     for result in response.results:
@@ -164,13 +183,16 @@ def generate_historical_metrics(api_client, customer_id, keywords, language, loc
                 "monthly_searches": month.monthly_searches
             })
 
+    # Convert to pandas DataFrames for further analysis
     overview_df = pd.DataFrame(overview)
     monthly_results_df = pd.DataFrame(monthly_results)
     monthly_results_df['Date'] = monthly_results_df.apply(lambda row: datetime.date(row['year'], row['month'], 1), axis=1)
 
+    # Pivot the monthly results dataframe for easier plotting
     graph_df = monthly_results_df.pivot(index='Date', columns='search_query', values='monthly_searches')
 
     return overview_df, monthly_results_df.pivot(index='search_query', columns='Date', values='monthly_searches'), graph_df
+
     
 # Function to download the DataFrame as an Excel file
 def convert_to_excel(dfs, sheet_names):
