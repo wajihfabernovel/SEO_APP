@@ -21,13 +21,19 @@ logging.basicConfig(
 with open('config.yaml') as file:
     config = yaml.safe_load(file)
 
+# In the authenticator initialization
 authenticator = stauth.Authenticate(
     config['credentials'],
     config['cookie']['name'],
     config['cookie']['key'],
     config['cookie']['expiry_days'],
-    config['preauthorized']
+    config['preauthorized'],
 )
+
+# Use a unique key for CookieManager to prevent duplication
+cookie_manager = stx.CookieManager(key="unique_cookie_key")
+
+authenticator.cookie_manager = cookie_manager
 
 name, authentication_status, username = authenticator.login('Login', 'main')
 
