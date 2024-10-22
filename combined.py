@@ -126,7 +126,7 @@ def generate_historical_metrics(api_client, customer_id, keywords, language, loc
     # Extract year and month from the start and end dates
     start_month = datetime.datetime.strptime(str(start_d), "%Y-%m-%d").month +1
     start_year = datetime.datetime.strptime(str(start_d), "%Y-%m-%d").year
-    end_month = datetime.datetime.strptime(str(end_d), "%Y-%m-%d").month
+    end_month = datetime.datetime.strptime(str(end_d), "%Y-%m-%d").month+1
     end_year = datetime.datetime.strptime(str(end_d), "%Y-%m-%d").year
 
     # Log the dates being used for debugging
