@@ -118,7 +118,7 @@ def location_full_list(client, customer_id):
     return locations
     
 
-def generate_historical_metrics(api_client, customer_id, keywords, language, location, start_d, end_d):
+def generate_historical_metrics(api_client, customer_id, keywords, language, location, start_month,start_year, end_month,end_year):
     keyword_service = api_client.get_service("KeywordPlanIdeaService")
     request = api_client.get_type("GenerateKeywordHistoricalMetricsRequest")
     keyword_plan_network = api_client.get_type("KeywordPlanNetworkEnum").KeywordPlanNetwork.GOOGLE_SEARCH_AND_PARTNERS
