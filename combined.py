@@ -129,9 +129,6 @@ def generate_historical_metrics(api_client, customer_id, keywords, language, loc
     end_month = datetime.datetime.strptime(str(end_d), "%Y-%m-%d").month+1
     end_year = datetime.datetime.strptime(str(end_d), "%Y-%m-%d").year
 
-    # Log the dates being used for debugging
-    st.write(f"Start Date: {start_year}-{start_month}")
-    st.write(f"End Date: {end_year}-{end_month}")
 
     # Ensure the start date is before the end date
     if start_d > end_d:
@@ -165,7 +162,6 @@ def generate_historical_metrics(api_client, customer_id, keywords, language, loc
     year_month_range.end.month = end_month
 
     # Assign the YearMonthRange object to the historical metrics options
-    st.write(year_month_range)
     request.historical_metrics_options.year_month_range.CopyFrom(year_month_range)
 
     try:
