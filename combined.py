@@ -366,6 +366,7 @@ if __name__ == "__main__":
         end_d = st.date_input("Choose the end date",value =max, format="YYYY/MM/DD",max_value =max,min_value =min)
         
     # Transform the month 13 to 1 of the next year 
+    st.write(start_d)
     if datetime.datetime.strptime(str(start_d), "%Y-%m-%d").month == 1 :    
         start_month = datetime.datetime.strptime(str(12), "%m").month +1
         start_year = datetime.datetime.strptime(str(start_d), "%Y-%m-%d").year - 1
