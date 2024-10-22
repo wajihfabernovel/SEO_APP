@@ -368,15 +368,15 @@ if __name__ == "__main__":
     # Transform the month 13 to 1 of the next year 
     st.write(start_d)
     if datetime.datetime.strptime(str(start_d), "%Y-%m-%d").month == 1 :    
-        start_month = datetime.datetime.strptime(str(start_d), "%Y-%m-%d").month
-        start_year = datetime.datetime.strptime(str(start_d), "%Y-%m-%d").year
+        start_month = datetime.datetime.strptime(str(12), "%m").month
+        start_year = datetime.datetime.strptime(str(start_d), "%Y-%m-%d").year - 1
         end_month = datetime.datetime.strptime(str(end_d), "%Y-%m-%d").month
         end_year = datetime.datetime.strptime(str(end_d), "%Y-%m-%d").year
     elif datetime.datetime.strptime(str(end_d), "%Y-%m-%d").month == 1 : 
         start_month = datetime.datetime.strptime(str(start_d), "%Y-%m-%d").month
         start_year = datetime.datetime.strptime(str(start_d), "%Y-%m-%d").year
-        end_month = datetime.datetime.strptime(str(end_d),"%Y-%m-%d").month
-        end_year = datetime.datetime.strptime(str(end_d), "%Y-%m-%d").year
+        end_month = datetime.datetime.strptime(str(12),"%m").month
+        end_year = datetime.datetime.strptime(str(end_d), "%Y-%m-%d").year - 1
     else: 
         start_month = datetime.datetime.strptime(str(start_d), "%Y-%m-%d").month
         start_year = datetime.datetime.strptime(str(start_d), "%Y-%m-%d").year
