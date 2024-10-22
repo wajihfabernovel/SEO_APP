@@ -26,7 +26,8 @@ authenticator = stauth.Authenticate(
     config['cookie']['name'],
     config['cookie']['key'],
     config['cookie']['expiry_days'],
-    config['preauthorized']
+    config['preauthorized'],
+    key='authenticator_key'  # Ensure this key is unique
 )
 
 name, authentication_status, username = authenticator.login('Login', 'main')
