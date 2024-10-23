@@ -157,9 +157,9 @@ def generate_historical_metrics(api_client, customer_id, keywords, language, loc
     # Create and set the YearMonthRange for historical metrics options
     year_month_range = api_client.get_type("YearMonthRange")
     year_month_range.start.year = start_year
-    year_month_range.start.month = start_month
+    year_month_range.start.month = start_month-1
     year_month_range.end.year = end_year
-    year_month_range.end.month = end_month
+    year_month_range.end.month = end_month-1
 
     # Assign the YearMonthRange object to the historical metrics options
     request.historical_metrics_options.year_month_range.CopyFrom(year_month_range)
